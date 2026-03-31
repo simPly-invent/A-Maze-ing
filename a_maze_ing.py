@@ -73,23 +73,17 @@ def dfs(maze, width, height):
 
     while stack:
         x, y = stack[-1]
-
-        # récupérer voisins non visités
         neighbors = []
 
-        # haut
         if y > 0 and not maze[y-1][x].visited:
             neighbors.append(("N", x, y-1))
 
-        # droite
         if x < width-1 and not maze[y][x+1].visited:
             neighbors.append(("E", x+1, y))
 
-        # bas
         if y < height-1 and not maze[y+1][x].visited:
             neighbors.append(("S", x, y+1))
 
-        # gauche
         if x > 0 and not maze[y][x-1].visited:
             neighbors.append(("W", x-1, y))
 
@@ -98,8 +92,6 @@ def dfs(maze, width, height):
 
             current = maze[y][x]
             next_cell = maze[ny][nx]
-
-            # casser mur (tu dois compléter)
             cells_braker(current, next_cell, direction)
 
             next_cell.visited = True
