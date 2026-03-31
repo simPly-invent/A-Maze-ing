@@ -48,8 +48,12 @@ def display_maze(maze):
 
         for x in range(width):
             cell = maze.grid[y][x]
-
-            line1 += "   "
+            if (x, y) == maze.entry:
+                line1 += " \033[33mo\033[0m "
+            elif (x, y) == maze.exit:
+                line1 += "\033[35m o \033[0m"
+            else:
+                line1 += "   "
 
             if cell.E:
                 line1 += "│"
@@ -73,13 +77,15 @@ def display_maze(maze):
 
 def parser_conf(data):
     config_dico = {}
-    first_tab = data.split("\n")
-    for element in first_tab:
-        second_tab = element.split("=")
-        KEY = second_tab[0]
-        VALUE = second_tab[1]
-        config_dico[KEY] = VALUE
-    return(config_dico)
+    for line in data.split("\n"):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        config_dico[key] = value
+    return config_dico
 
 def cells_braker(current, next, direction):
     if direction == "E":
@@ -98,7 +104,6 @@ def cells_braker(current, next, direction):
 def dfs(maze):
     stack = [(0, 0)]
     maze.grid[0][0].visited = True
-    open_wall()
     while stack:
         x, y = stack[-1]
         neighbors = []
@@ -124,8 +129,11 @@ def dfs(maze):
             stack.append((nx, ny))
         else:
             stack.pop()
-    j, k = maze.en
-    open_wall(maze.grid, maze.)
+    j, k = maze.entry
+    ej, ek = maze.exit
+    
+    open_wall(maze, j, k)
+    open_wall(maze, ej, ek)
 
 
 
