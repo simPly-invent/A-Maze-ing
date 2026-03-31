@@ -1,5 +1,20 @@
 import random
 
+class Maze:
+    def __init__(self, height, width, entry, exit_):
+        self.height = height
+        self.width = width
+        self.entry = entry
+        self.exit = exit_
+        self.grid = []
+
+        for y in range(height):
+            row = []
+            for x in range(width):
+                row.append(Cell())
+            self.grid.append(row)
+
+
 
 class Cell:
     def __init__(self):
@@ -10,28 +25,51 @@ class Cell:
         self.visited = False
 
 
+def open_wall(maze, x, y):
+    cell = maze.grid[y][x]
+    if y == 0:
+        cell.N = False
+    elif y == maze.height - 1:
+        cell.S = False
+    elif x == 0:
+        cell.W = False
+    elif x == maze.width - 1:
+        cell.E = False
+
 def display_maze(maze):
-    height = len(maze)
-    width = len(maze[0])
-    
-    print("+" + "---+" * width)
+    height = maze.height
+    width = maze.width
+
+    print("┌" + "───┬" * (width - 1) + "───┐")
+
     for y in range(height):
-        line1 = "|"
-        line2 = "+"
+        line1 = "│"
+        line2 = "├"
 
         for x in range(width):
-            cell = maze[y][x]
+            cell = maze.grid[y][x]
+
             line1 += "   "
+
             if cell.E:
-                line1 += "|"
+                line1 += "│"
             else:
                 line1 += " "
+
             if cell.S:
-                line2 += "---+"
+                line2 += "───┼"
             else:
-                line2 += "   +"
+                line2 += "   ┼"
+
+        line1 = line1[:-1] + "│"
+        line2 = line2[:-1] + "┤"
+
         print(line1)
-        print(line2)
+
+        if y < height - 1:
+            print(line2)
+
+    print("└" + "───┴" * (width - 1) + "───┘")
 
 def parser_conf(data):
     config_dico = {}
@@ -42,16 +80,6 @@ def parser_conf(data):
         VALUE = second_tab[1]
         config_dico[KEY] = VALUE
     return(config_dico)
-
-def cells_maker(width, height):
-    maze = []
-    for y in range(height):
-        row = []
-        for x in range(width):
-            row.append(Cell())
-        maze.append(row)
-    return maze
-
 
 def cells_braker(current, next, direction):
     if direction == "E":
@@ -67,47 +95,50 @@ def cells_braker(current, next, direction):
         current.N = False
         next.S = False
 
-def dfs(maze, width, height):
+def dfs(maze):
     stack = [(0, 0)]
-    maze[0][0].visited = True
-
+    maze.grid[0][0].visited = True
+    open_wall()
     while stack:
         x, y = stack[-1]
         neighbors = []
 
-        if y > 0 and not maze[y-1][x].visited:
+        if y > 0 and not maze.grid[y-1][x].visited:
             neighbors.append(("N", x, y-1))
 
-        if x < width-1 and not maze[y][x+1].visited:
+        if x < maze.width - 1 and not maze.grid[y][x+1].visited:
             neighbors.append(("E", x+1, y))
 
-        if y < height-1 and not maze[y+1][x].visited:
+        if y < maze.height - 1 and not maze.grid[y+1][x].visited:
             neighbors.append(("S", x, y+1))
 
-        if x > 0 and not maze[y][x-1].visited:
+        if x > 0 and not maze.grid[y][x-1].visited:
             neighbors.append(("W", x-1, y))
 
         if neighbors:
             direction, nx, ny = random.choice(neighbors)
-
-            current = maze[y][x]
-            next_cell = maze[ny][nx]
+            current = maze.grid[y][x]
+            next_cell = maze.grid[ny][nx]
             cells_braker(current, next_cell, direction)
-
             next_cell.visited = True
             stack.append((nx, ny))
         else:
             stack.pop()
-
-
+    j, k = maze.en
+    open_wall(maze.grid, maze.)
 
 
 
 if __name__ == "__main__":
     r = open("config.txt", "r")
     config = parser_conf(r.read())
-    height = config["HEIGHT"]
-    width = config["WIDTH"]
-    maze_test = cells_maker(int(width), int(height))
-    dfs(maze_test, int(width), int(height))
+    height = int(config["HEIGHT"])
+    width = int(config["WIDTH"])
+    entry = tuple(map(int, config["ENTRY"].split(".")))
+    exit_ = tuple(map(int, config["EXIT"].split(".")))
+    maze_test = Maze(height, width, entry, exit_)
+    print("AVANT\n")
+    display_maze(maze_test)
+    dfs(maze_test)
+    print("APRES\n")
     display_maze(maze_test)
