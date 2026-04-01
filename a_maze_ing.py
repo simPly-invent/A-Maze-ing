@@ -1,5 +1,6 @@
 import random
 
+
 class Maze:
     def __init__(self, height, width, entry, exit_):
         self.height = height
@@ -7,13 +8,13 @@ class Maze:
         self.entry = entry
         self.exit = exit_
         self.grid = []
+        self.path = []
 
         for y in range(height):
             row = []
             for x in range(width):
                 row.append(Cell())
             self.grid.append(row)
-
 
 
 class Cell:
@@ -36,6 +37,7 @@ def open_wall(maze, x, y):
     elif x == maze.width - 1:
         cell.E = False
 
+
 def display_maze(maze):
     height = maze.height
     width = maze.width
@@ -52,6 +54,8 @@ def display_maze(maze):
                 line1 += " \033[33mo\033[0m "
             elif (x, y) == maze.exit:
                 line1 += "\033[35m o \033[0m"
+            elif (x, y) in maze.path:
+                line1 += " . "
             else:
                 line1 += "   "
 
@@ -75,6 +79,7 @@ def display_maze(maze):
 
     print("└" + "───┴" * (width - 1) + "───┘")
 
+
 def parser_conf(data):
     config_dico = {}
     for line in data.split("\n"):
@@ -86,6 +91,7 @@ def parser_conf(data):
         key, value = line.split("=", 1)
         config_dico[key] = value
     return config_dico
+
 
 def cells_braker(current, next, direction):
     if direction == "E":
@@ -100,6 +106,65 @@ def cells_braker(current, next, direction):
     if direction == "N":
         current.N = False
         next.S = False
+
+
+def no_wall(direction, maze, coordinate):
+    wall = False
+    x, y = coordinate
+    if direction == "N" and not maze.grid[y][x].N:
+        wall = True
+    elif direction == "E" and not maze.grid[y][x].E:
+        wall = True
+    elif direction == "S" and not maze.grid[y][x].S:
+        wall = True
+    elif direction == "W" and not maze.grid[y][x].W:
+        wall = True
+    return wall
+
+
+def bfs(maze):
+    maze.path = []
+    x, y = maze.entry
+    cells = [(x, y)]
+    parent = {}
+    for row in maze.grid:
+        for cell in row:
+            cell.visited = False
+    maze.grid[y][x].visited = True
+    while (cells):
+        x, y = cells.pop(0)
+        if (x, y) == maze.exit:
+            print("target find")
+            break
+        neighbors = []
+
+        if y > 0 and not maze.grid[y-1][x].visited:
+            neighbors.append(("N", x, y-1))
+
+        if x < maze.width - 1 and not maze.grid[y][x+1].visited:
+            neighbors.append(("E", x+1, y))
+
+        if y < maze.height - 1 and not maze.grid[y+1][x].visited:
+            neighbors.append(("S", x, y+1))
+
+        if x > 0 and not maze.grid[y][x-1].visited:
+            neighbors.append(("W", x-1, y))
+
+        for neighbor in neighbors:
+            direction, nx, ny = neighbor
+            coordinate = x, y
+            good_way = no_wall(direction, maze, coordinate)
+            if good_way and not maze.grid[ny][nx].visited:
+                maze.grid[ny][nx].visited = True
+                parent[(nx, ny)] = (x, y)
+                cells.append((nx, ny))
+    position = maze.exit
+    while position in parent:
+        maze.path.append(position)
+        position = parent[position]
+    maze.path.append(maze.entry)
+    maze.path.reverse()
+
 
 def dfs(maze):
     stack = [(0, 0)]
@@ -131,10 +196,9 @@ def dfs(maze):
             stack.pop()
     j, k = maze.entry
     ej, ek = maze.exit
-    
+
     open_wall(maze, j, k)
     open_wall(maze, ej, ek)
-
 
 
 if __name__ == "__main__":
@@ -149,4 +213,6 @@ if __name__ == "__main__":
     display_maze(maze_test)
     dfs(maze_test)
     print("APRES\n")
+    display_maze(maze_test)
+    bfs(maze_test)
     display_maze(maze_test)
