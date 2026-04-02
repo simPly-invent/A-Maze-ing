@@ -1,6 +1,30 @@
 import random
 import time
 import os
+from pydantic import BaseModel, Field, ValidationError, model_validator
+
+
+RED = "\033[31m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+MAGENTA = "\033[35m"
+RESET = "\033[0m"
+
+class Config(BaseModel):
+    WIDTH: int = Field(ge=0, le=1000)
+    HEIGHT: int = Field(ge=0, le=1000)
+    ENTRY: tuple[int, int]
+    EXIT: tuple[int, int]
+    PERFECT: bool
+
+    @model_validator(mode="after")
+    def check_rules(self):
+        if self.WIDTH == 3 and self.HEIGHT == 3:
+            raise ValueError("maze to small to be create")
+        return self
+        
+
+    
 
 class Maze:
     """
@@ -92,49 +116,50 @@ def display_maze(maze):
     En gros :
     → c'est uniquement de l'affichage, aucune logique de labyrinthe
     """
+    COLOR_MAZE = RED
     height = maze.height
     width = maze.width
 
-    print("┌" + "───┬" * (width - 1) + "───┐")
+    print(COLOR_MAZE + "┌" + "───┬" * (width - 1) + "───┐" + RESET)
 
     for y in range(height):
-        line1 = "│"
-        line2 = "├"
+        line1 = f"{COLOR_MAZE}│{RESET}"
+        line2 = f"{COLOR_MAZE}├{RESET}"
 
         for x in range(width):
             cell = maze.grid[y][x]
             if not cell.generate:
                 line1 += "   "
-                line1 += "│"
+                line1 += f"{COLOR_MAZE}│{RESET}"
                 continue
             if (x, y) == maze.entry:
                 line1 += " \033[33mo\033[0m "
             elif (x, y) == maze.exit:
                 line1 += "\033[35m o \033[0m"
             elif (x, y) in maze.path:
-                line1 += " . "
+                line1 += " x "
             else:
                 line1 += "   "
 
             if cell.E:
-                line1 += "│"
+                line1 += f"{COLOR_MAZE}│{RESET}"
             else:
                 line1 += " "
 
             if cell.S:
-                line2 += "───┼"
+                line2 += f"{COLOR_MAZE}───┼{RESET}"
             else:
-                line2 += "   ┼"
+                line2 += f"   {COLOR_MAZE}┼{RESET}"
 
-        line1 = line1[:-1] + "│"
-        line2 = line2[:-1] + "┤"
+        # line1 = line1[:-1] + f"{COLOR_MAZE}│{RESET}"
+        line2 = line2[:-1] + f"│"
 
         print(line1)
 
         if y < height - 1:
             print(line2)
 
-    print("└" + "───┴" * (width - 1) + "───┘")
+    print(COLOR_MAZE + "└" + "───┴" * (width - 1) + "───┘" + RESET)
 
 
 def parser_conf(data):
@@ -234,26 +259,6 @@ def add_loops(maze, chance=0.1):
                 cells_braker(maze.grid[y][x], maze.grid[ny][nx], direction)
 
 def no_wall(direction, maze, coordinate):
-    """
-    Trouve le PLUS COURT chemin entre entrée et sortie.
-
-    Algorithme :
-    → parcours en largeur (queue FIFO)
-
-    Étapes :
-    1. on part de l'entrée
-    2. on explore tous les voisins accessibles
-    3. on stocke les parents (pour reconstruire le chemin)
-    4. quand on atteint la sortie → stop
-    5. on remonte le chemin avec parent
-
-    Résultat :
-    → maze.path contient le chemin final
-
-    Important :
-    → marche même avec des boucles
-    → garantit le plus court chemin
-    """
     wall = False
     x, y = coordinate
     if direction == "N" and not maze.grid[y][x].N:
@@ -329,7 +334,7 @@ def bfs(maze):
         position = parent[position]
     maze.path.append(maze.entry)
     maze.path.reverse()
-    display_maze(maze)
+    # display_maze(maze)
 
 
 def dfs(maze):
@@ -381,7 +386,7 @@ def dfs(maze):
             stack.append((nx, ny))
             print("\033c")
             display_maze(maze)
-            time.sleep(0.2)
+            time.sleep(0.001)
         else:
             stack.pop()
     j, k = maze.entry
@@ -391,7 +396,7 @@ def dfs(maze):
     open_wall(maze, ej, ek)
     print("\033c")
 
-def growing_tree(maze):
+def growing_tree(maze, x, y):
     """
     Génère un labyrinthe avec l'algo Growing Tree.
 
@@ -408,25 +413,24 @@ def growing_tree(maze):
     → plus naturel / varié
 
     Paramètre caché :
-    → le ratio (0.7 ici) contrôle le style
+    → le ratio contrôle le style
 
     En gros :
     → meilleur rendu visuel que DFS pur
     """
+
     for row in maze.grid:
         for cell in row:
             cell.visited = False
             cell.generate = False
 
-    cells = [(0, 0)]
-    maze.grid[0][0].visited = True
-    maze.grid[0][0].generate = True
+    cells = [(y, x)]
+    maze.grid[x][y].visited = True
+    maze.grid[x][y].generate = True
 
     while cells:
-
-        # choix du style (mix DFS / random)
-        if random.random() < 0.7:
-            index = -1  # DFS-like
+        if random.random() < 0.10:
+            index = -1
         else:
             index = random.randint(0, len(cells) - 1)
 
@@ -459,7 +463,7 @@ def growing_tree(maze):
 
         print("\033c")
         display_maze(maze)
-        time.sleep(0.05)
+        time.sleep(0.001)
 
         next_cell.visited = True
         cells.append((nx, ny))
@@ -472,13 +476,47 @@ def growing_tree(maze):
 if __name__ == "__main__":
     r = open("config.txt", "r")
     config = parser_conf(r.read())
-    height = int(config["HEIGHT"])
-    width = int(config["WIDTH"])
-    entry = tuple(map(int, config["ENTRY"].split(",")))
-    exit_ = tuple(map(int, config["EXIT"].split(",")))
-    maze_test = Maze(height, width, entry, exit_)
-    # display_maze(maze_test)
-    dfs(maze_test)
-    add_loops(maze_test, 0.60)
-    bfs(maze_test)
-    # display_maze(maze_test)
+    try:
+        maze_conf = Config(
+            WIDTH=int(config["WIDTH"]),
+            HEIGHT=int(config["HEIGHT"]),
+            ENTRY=tuple(map(int, config["ENTRY"].split(","))),
+            EXIT=tuple(map(int, config["EXIT"].split(","))),
+            PERFECT=config["PERFECT"].lower() == "true"
+        )
+    except ValidationError as e:
+        print(e)
+    try:
+        perfect = maze_conf.PERFECT
+        while(True):
+            if perfect:
+                print(f"State of the maze: perfect")
+            else:
+                print(f"State of the maze: not perfect")
+            user = input("which algo you want ? \n 1) growing tree enter 1 \n 2) DFS enter 2 \n 3) switch from perfect to not perfect\n: ")
+            if user == "1":
+                maze_test = Maze(maze_conf.HEIGHT, maze_conf.WIDTH, maze_conf.ENTRY, maze_conf.EXIT)
+                user = input("starting genearation from ?\n")
+                reponse1 = user.split(",")
+                reponse2 = list(map(int, reponse1))
+                print(reponse2)
+                x, y = reponse2
+                growing_tree(maze_test, y, x)
+                if not perfect:
+                    add_loops(maze_test, 0.40)
+                bfs(maze_test)
+                display_maze(maze_test)
+            elif user == "2":
+                maze_test = Maze(maze_conf.HEIGHT, maze_conf.WIDTH, maze_conf.ENTRY, maze_conf.EXIT)
+                dfs(maze_test)
+                if not perfect:
+                    add_loops(maze_test, 0.40)
+                bfs(maze_test)
+                display_maze(maze_test)
+            elif user == "3":
+                perfect = not perfect
+            else:
+                print("goodbye :)")
+                break
+    except (KeyboardInterrupt, ValueError) as e:
+        print(f"\nan error occurse (details): {e}")
