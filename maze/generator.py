@@ -110,11 +110,11 @@ def cells_braker(current, next, direction):
 
 def initforty_two(maze):
     pattern = [
-        " 4   222",
-        "4  4   2",
-        "4444  2 ",
-        "   4 2  ",
-        "   4 222",
+        "4 4 222",
+        "4 4   2",
+        "444  2 ",
+        "  4 2  ",
+        "  4 222",
     ]
     start_y = maze.height // 2 - len(pattern) // 2
     start_x = maze.width // 2 - len(pattern[0]) // 2
@@ -140,7 +140,6 @@ def dfs(maze, color, type_display):
 
     Résultat :
     → labyrinthe parfait (1 seul chemin entre 2 points)
-
     Bonus :
     → animation avec display_maze
 
@@ -171,10 +170,7 @@ def dfs(maze, color, type_display):
             cells_braker(current, next_cell, direction)
             next_cell.visited = True
             stack.append((nx, ny))
-            # if win:
-            #     win.refresh()
-            # else:
-            if type_display == "algo":
+            if type_display == "Ascii":
                 print("\033c")
                 display_maze(maze, color)
                 time.sleep(0.05)
@@ -281,12 +277,11 @@ def growing_tree(maze, x, y, color, type_display):
         next_cell = maze.grid[ny][nx]
         if current.isbreakable and next_cell.isbreakable:
             cells_braker(current, next_cell, direction)
-
             current.generate = True
             next_cell.generate = True
             next_cell.visited = True
             cells.append((nx, ny))
-        if type_display == "algo":
+        if type_display == "ascii":
             print("\033c")
             display_maze(maze, color)
             time.sleep(0.04)

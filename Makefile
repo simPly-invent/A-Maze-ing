@@ -4,6 +4,7 @@ COMP := python3 a_maze_ing.py
 ENV := .venv/bin/activate
 CREATE_VENV := python3 -m venv .venv 
 SHELL := /bin/bash
+PATH_PY_CACHE := maze/__pycache__
 
 
 install :
@@ -14,5 +15,5 @@ install :
 run:
 	$(COMP)
 
-test : install
-	$(PYTHON) -m pytest ./tests/   
+clean:
+	rm -r $(PATH_PY_CACHE)

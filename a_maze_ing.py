@@ -55,23 +55,33 @@ if __name__ == "__main__":
         m = Menu(maze_conf, perfect, color)
         intro_animation(color)
         algo = m.dfs_menu
+        Maze_render = "Ascii render"
         while True:
             type_display = ""
             print(" ------------")
             print("| board menu |")
             print("  ------------")
-            print(f"State of the maze: {'perfect' if perfect else 'not perfect'}\nglobal dimensions = {m.maze_conf.HEIGHT}, {m.maze_conf.WIDTH}\nAlgo : {algo.__name__.replace("_", " ")}")
+            print(f"State of the maze: {'perfect' if perfect else 'not perfect'}\nglobal dimensions = {m.maze_conf.HEIGHT}, {m.maze_conf.WIDTH}\nAlgo : {algo.__name__.replace("_", " ")}\nRender : {Maze_render}")
             print(" --------------------------- ")
             print("| Menu, do what you want  ? |")
             print(" --------------------------- ")
-            user = input(f"\n\n 1) launch the maze generation\n 2) switch Algoritms \n 3) switch perfect/not perfect\n 4) change maze dimension\n 5) change the color of the maze \n")
+            user = input(f"\n\n 1) launch the maze generation\n 2) switch render \n 3) switch Algoritms \n 4) switch perfect/not perfect\n 5) change maze dimension\n 6) change the color of the maze \n")
             maze = algo(type_display)
             print(type_display)
             if user == "1":
-                type_display = "algo"
-                maze = algo(type_display)
-                display_maze(maze, color)
+                if Maze_render.startswith("Ascii"):
+                    maze = algo(type_display)
+                    display_maze(maze, color)
+                else:
+                    window(maze, m.maze_conf.HEIGHT, m.maze_conf.WIDTH)
+                continue
             elif user == "2":
+                if Maze_render == "Ascii render":
+                    Maze_render = "Mlx render"
+                else:
+                    Maze_render = "Ascii render"
+                continue
+            elif user == "3":
                 if algo == m.growing_tree_menu:
                     algo = m.dfs_menu
                 else:
@@ -79,17 +89,17 @@ if __name__ == "__main__":
                 type_display = "nada"
                 print("\033c")
                 continue
-            elif user == "3":
+            elif user == "4":
                 type_display = "perfect"
                 perfect = not perfect
                 print("\033c")
                 continue
-            elif user == "4":
+            elif user == "5":
                 user_dimension = input("'height,width' <- format without space please\n:")
                 m.maze_conf.HEIGHT, m.maze_conf.WIDTH = map(int, user_dimension.split(","))
                 print("\033c")
                 continue
-            elif user == "5":
+            elif user == "6":
                 type_display = "color"
                 print("\033c")
                 color = input("Which color you want ? \n\

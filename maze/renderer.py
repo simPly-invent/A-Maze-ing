@@ -1,5 +1,6 @@
 from .generator import *
 from .utils import *
+from mlx import Mlx
 import time
 import sys
 
@@ -88,3 +89,61 @@ def display_maze(maze, color):
             print(line2)
 
     print(COLOR_MAZE + "└" + "───┴" * (width - 1) + "───┘" + RESET)
+
+
+
+
+
+def window(maze, maze_HEIGHT, maze_WIDTH):
+    def win_close(key, *param):
+        print(key)
+        if key == 65307:
+            mlx.mlx_loop_exit(param[0])
+
+    def put_pixel(img_adr, offset, x, y, color):
+        img_adr[y * offset + x] = color
+
+
+    def put_case(maze, width, height, img_adr, offset, color, tile):
+        blue = 0xFF0000FF
+        green = 0xFF00FF00
+        white = 0xFFFFFFFF
+        wall = 2
+        for col in range(height):
+            for row in range(width):
+                cell = maze.grid[row][col]
+                for y in range(tile):
+                    for x in range(tile):
+                        if (col, row) == maze.entry:
+                            put_pixel(img_adr, offset, (col * tile + x), (row * tile + y), blue)
+                        elif (col, row) == maze.exit:
+                            put_pixel(img_adr, offset, (col * tile + x), (row * tile + y), green)
+                        elif (col, row) in maze.path:
+                            color = 0xA9A9A9FF
+                            put_pixel(img_adr, offset, (col * tile + x), (row * tile + y), color)
+                        if (cell.N and y < wall):
+                            put_pixel(img_adr, offset, (col * tile + x), (row * tile + y), white)
+                        elif (cell.S and y >= tile - wall):
+                            put_pixel(img_adr, offset, (col * tile + x), (row * tile + y), white)
+                        if (cell.E and x >= tile - wall):
+                            put_pixel(img_adr, offset, (col * tile + x), (row * tile + y), white)
+                        elif (cell.W and x < wall):
+                            put_pixel(img_adr, offset, (col * tile + x), (row * tile + y), white)
+                    
+
+
+    mlx = Mlx()
+
+    tile_size = 50
+
+    init = mlx.mlx_init()
+
+    mlx_win = mlx.mlx_new_window(init, maze_WIDTH * tile_size, maze_HEIGHT * tile_size, "a-maze-ing")
+    mlx_img = mlx.mlx_new_image(init, maze_WIDTH * tile_size, maze_HEIGHT * tile_size)
+    img_adr, bpp, line_length, endian = mlx.mlx_get_data_addr(mlx_img)
+    img_adr = img_adr.cast('I')
+    offset = line_length // (bpp // 8)
+    put_case(maze, maze_WIDTH, maze_HEIGHT, img_adr, offset, 0, tile_size)
+    mlx.mlx_put_image_to_window(init, mlx_win, mlx_img, 0, 0)
+    mlx.mlx_key_hook(mlx_win, win_close, init)
+    mlx.mlx_loop(init)
