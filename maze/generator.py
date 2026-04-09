@@ -172,7 +172,7 @@ def dfs(maze, color, type_display):
             cells_braker(current, next_cell, direction)
             next_cell.visited = True
             stack.append((nx, ny))
-            if type_display == "Ascii":
+            if type_display == "ascii":
                 print("\033c")
                 display_maze(maze, color)
                 time.sleep(0.05)
@@ -187,37 +187,27 @@ def dfs(maze, color, type_display):
 
 
 def random_breaker(maze, chance=0.1):
-    """
-    Ajoute des boucles dans le labyrinthe.
-
-    Pourquoi :
-    → DFS / Growing Tree crée un labyrinthe parfait (1 seul chemin)
-    → ici on casse des murs en plus pour créer plusieurs solutions
-
-    chance :
-    → probabilité de casser un mur (ex: 0.6 = beaucoup de loops)
-
-    En gros :
-    → rend le labyrinthe moins "rigide"
-    """
+    count = 0
     for y in range(maze.height):
         for x in range(maze.width):
-            directions = ["N", "E", "S", "W"]
-            direction = random.choice(directions)
-            nx, ny = x, y
-            if direction == "N" and y > 0:
-                ny -= 1
-            elif direction == "S" and y < maze.height - 1:
-                ny += 1
-            elif direction == "E" and x < maze.width - 1:
-                nx += 1
-            elif direction == "W" and x > 0:
-                nx -= 1
-            else:
-                continue
-            if random.random() < chance and maze.grid[y][x].isbreakable and maze.grid[ny][nx].isbreakable:
-                cells_braker(maze.grid[y][x], maze.grid[ny][nx], direction)
-
+            # Mur Est
+            if x < maze.width - 1:
+                if random.random() < chance:
+                    c1, c2 = maze.grid[y][x], maze.grid[y][x+1]
+                    if c1.isbreakable and c2.isbreakable:
+                        cells_braker(c1, c2, "E")
+                        c1.generate = c2.generate = True # Indispensable pour l'affichage
+                        count += 1
+            # Mur Sud
+            if y < maze.height - 1:
+                if random.random() < chance:
+                    c1, c2 = maze.grid[y][x], maze.grid[y+1][x]
+                    if c1.isbreakable and c2.isbreakable:
+                        cells_braker(c1, c2, "S")
+                        c1.generate = c2.generate = True # Indispensable pour l'affichage
+                        count += 1
+    # Ce print te dira enfin la vérité !
+    print(f"\033[32m[DEBUG] Random Breaker : {count} murs supprimés.\033[0m")
 
 
 def growing_tree(maze, x, y, color, type_display):

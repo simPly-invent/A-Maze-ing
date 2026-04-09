@@ -49,7 +49,6 @@ def bfs(maze):
     while (cells):
         x, y = cells.pop(0)
         if (x, y) == maze.exit:
-            print("target find")
             break
         neighbors = []
 

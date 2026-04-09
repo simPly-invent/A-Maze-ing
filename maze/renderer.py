@@ -149,6 +149,9 @@ def draw_wall(maze, offset, img_adr, height, width):
     purple = 0xA9A9A9FF
     fortytwo = 0xCCFFFFFF
     size = 50
+    total_pixels = (width * 50) * (height * 50)
+    for i in range(total_pixels):
+        img_adr[i] = 0x00000000
     for col in range(height):
         for row in range(width):
             cell = maze.grid[row][col]
@@ -173,26 +176,52 @@ def draw_wall(maze, offset, img_adr, height, width):
                     for j in range(size):
                         put_pixel(img_adr, offset, col * size + j, row * size + i, fortytwo)
             draw_case(maze, height, width, col, row, img_adr, offset, size, cell, x_start, y_start, x_end, y_end, white)
+def goodreturn(maze, maze_HEIGHT, maze_WIDTH):
+    oui = 0
+    def window(maze, maze_HEIGHT, maze_WIDTH):
+        mlx = Mlx()
+        tile_size = 50
+        init = mlx.mlx_init()
+        mlx_win = mlx.mlx_new_window(init, maze_WIDTH * tile_size, maze_HEIGHT * tile_size + 150, "a-maze-ing")
+        mlx_img = mlx.mlx_new_image(init, maze_WIDTH * tile_size, maze_HEIGHT * tile_size)
+        img_adr, bpp, line_length, endian = mlx.mlx_get_data_addr(mlx_img)
+        img_adr = img_adr.cast('I')
+        def win_close(key, param):
+            print(key)
+            nonlocal oui
+            if key == 65307:
+                oui = 1
+                mlx.mlx_destroy_image(init, mlx_img)
+                mlx.mlx_destroy_window(init, mlx_win)
+                mlx.mlx_loop_exit(init)
+                # sys.exit(0)
+            elif key == 32:
+                oui = 2
+                print("Relance du labyrinthe...")
+                mlx.mlx_destroy_image(init, mlx_img)
+                mlx.mlx_destroy_window(init, mlx_win)
+                mlx.mlx_loop_exit(init) 
 
-def window(maze, maze_HEIGHT, maze_WIDTH):
+        def print_coor(x, y, param):    
+            tile_x = x // 50
+            tile_y = y // 50
+            print(f"({tile_x}, {tile_y})")
 
-    def win_close(key, *param):
-        print(key)
-        if key == 65307:
-            mlx.mlx_loop_exit(param[0])
+        lines = [
+            "--- COMMANDES ---",
+            "ESC : Quitter le programme",
+            "SPACE : Lancer une nouvelle generation"
+        ]
 
-    mlx = Mlx()
+        for i, text in enumerate(lines):
+            text_offset = (len(text) * 7) // 2 
+            mlx.mlx_string_put(init, mlx_win, maze_WIDTH , maze_HEIGHT * tile_size + 50 + (i * 30), 0xFFFFFF, text)
 
-    tile_size = 50
-
-    init = mlx.mlx_init()
-
-    mlx_win = mlx.mlx_new_window(init, maze_WIDTH * tile_size, maze_HEIGHT * tile_size, "a-maze-ing")
-    mlx_img = mlx.mlx_new_image(init, maze_WIDTH * tile_size, maze_HEIGHT * tile_size)
-    img_adr, bpp, line_length, endian = mlx.mlx_get_data_addr(mlx_img)
-    img_adr = img_adr.cast('I')
-    offset = line_length // (bpp // 8)
-    draw_wall(maze, offset, img_adr, maze_HEIGHT, maze_WIDTH)
-    mlx.mlx_put_image_to_window(init, mlx_win, mlx_img, 0, 0)
-    mlx.mlx_key_hook(mlx_win, win_close, init)
-    mlx.mlx_loop(init)
+        offset = line_length // (bpp // 8)
+        draw_wall(maze, offset, img_adr, maze_HEIGHT, maze_WIDTH)
+        mlx.mlx_put_image_to_window(init, mlx_win, mlx_img, 0, 0)
+        mlx.mlx_key_hook(mlx_win, win_close, init)
+        mlx.mlx_hook(mlx_win, 6, 1 << 6, print_coor, None)
+        mlx.mlx_loop(init)
+    window(maze, maze_HEIGHT, maze_WIDTH)
+    return oui

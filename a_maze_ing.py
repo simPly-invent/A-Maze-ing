@@ -11,13 +11,12 @@ class Menu:
     def growing_tree_menu(self, type_display) -> Maze:
         maze_test = Maze(self.maze_conf.HEIGHT, self.maze_conf.WIDTH, self.maze_conf.ENTRY, self.maze_conf.EXIT)
         initforty_two(maze_test)
-        if type_display == "algo":
-            coords = list(map(int, input("starting generation from (x,y) ?\n").split(",")))
-            x, y = coords
-            growing_tree(maze_test, y, x, self.color, type_display)
-            if not self.perfect:
-                add_loops(maze_test, 0.40)
-            bfs(maze_test)
+        coords = list(map(int, input("starting generation from (x,y) ?\n").split(",")))
+        x, y = coords
+        growing_tree(maze_test, y, x, self.color, type_display)
+        if not self.perfect:
+            random_breaker(maze_test, 0.10)
+        bfs(maze_test)
         return maze_test
     
     def dfs_menu(self, type_display) -> Maze:
@@ -25,7 +24,7 @@ class Menu:
         initforty_two(maze_test)
         dfs(maze_test, color, type_display)
         if not self.perfect:
-            add_loops(maze_test, 0.40)
+            random_breaker(maze_test, 0.10)
         bfs(maze_test)
         return maze_test
 
@@ -56,8 +55,10 @@ if __name__ == "__main__":
         intro_animation(color)
         algo = m.dfs_menu
         Maze_render = "Ascii render"
+        rl_render = "ascii"
+        maze = None
+        type_display = "color"
         while True:
-            type_display = ""
             print(" ------------")
             print("| board menu |")
             print("  ------------")
@@ -66,27 +67,41 @@ if __name__ == "__main__":
             print("| Menu, do what you want  ? |")
             print(" --------------------------- ")
             user = input(f"\n\n 1) launch the maze generation\n 2) switch render \n 3) switch Algoritms \n 4) switch perfect/not perfect\n 5) change maze dimension\n 6) change the color of the maze \n")
-            maze = algo(type_display)
-            print(type_display)
+            if not maze and user == "6":
+                print("no maze can be found")
+                continue
             if user == "1":
-                if Maze_render.startswith("Ascii"):
-                    maze = algo(type_display)
-                    display_maze(maze, color)
-                else:
-                    window(maze, m.maze_conf.HEIGHT, m.maze_conf.WIDTH)
+                while True:
+                    maze = algo(rl_render)
+                    if rl_render == "ascii":
+                        print("\033c")
+                        display_maze(maze, color) # On affiche le maze déjà généré
+                        input("\nPressez Entrer pour afficher le menu...")
+                        break 
+                    else:
+                        num = goodreturn(maze, m.maze_conf.HEIGHT, m.maze_conf.WIDTH)
+                        if num == 1:
+                            break
+                        elif num == 2:
+                            continue 
+                        else:
+                            break
                 continue
             elif user == "2":
-                if Maze_render == "Ascii render":
+                # Correction du switch pour qu'il alterne vraiment
+                if rl_render == "ascii":
                     Maze_render = "Mlx render"
+                    rl_render = "mlx"
                 else:
                     Maze_render = "Ascii render"
+                    rl_render = "ascii"
+                print("\033c")
                 continue
             elif user == "3":
                 if algo == m.growing_tree_menu:
                     algo = m.dfs_menu
                 else:
                     algo = m.growing_tree_menu
-                type_display = "nada"
                 print("\033c")
                 continue
             elif user == "4":
