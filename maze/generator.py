@@ -49,6 +49,7 @@ class Cell:
         self.isbreakable = True
         self.visited = False
         self.generate = False
+        self.isftwo = False
 
 
 def open_wall(maze, x, y):
@@ -112,7 +113,7 @@ def initforty_two(maze):
     pattern = [
         "4 4 222",
         "4 4   2",
-        "444  2 ",
+        "444 222",
         "  4 2  ",
         "  4 222",
     ]
@@ -125,6 +126,7 @@ def initforty_two(maze):
                 cell = maze.grid[start_y + dy][start_x + dx]
                 cell.isbreakable = False
                 cell.generate = True
+                cell.isftwo = True
 
 
 def dfs(maze, color, type_display):

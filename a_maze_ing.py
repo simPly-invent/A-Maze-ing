@@ -122,7 +122,5 @@ if __name__ == "__main__":
             else:
                 print("goodbye :(")
                 break
-            
-
     except (KeyboardInterrupt, ValueError) as e:
         print(f"\nan error occurred: {e}")
