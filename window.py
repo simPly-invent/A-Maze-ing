@@ -74,6 +74,27 @@ class Cell:
         self.W = True
         self.visited = False
         self.generate = False
+        self.isftwo = False
+
+
+def initforty_two(maze):
+    pattern = [
+        "4 4 222",
+        "4 4   2",
+        "444 222",
+        "  4 2  ",
+        "  4 222",
+    ]
+    start_y = maze.height // 2 - len(pattern) // 2
+    start_x = maze.width // 2 - len(pattern[0]) // 2
+
+    for dy, row in enumerate(pattern):
+        for dx, char in enumerate(row):
+            if char != " ":
+                cell = maze.grid[start_y + dy][start_x + dx]
+                cell.isbreakable = False
+                cell.generate = True
+                cell.isftwo = True
 
 
 def open_wall(maze, x, y):
@@ -399,41 +420,93 @@ def dfs(maze):
     print("\033c")
 
 
+def put_pixel(img_adr, offset, x, y, color):
+    img_adr[y * offset + x] = color
+
+
+def put_topbottom(top, img_adr, offset, size, x_start, y_start, x_end, y_end, color):
+    if top:
+        for i in range(size):
+            put_pixel(img_adr, offset, (x_start + i), y_start, color)
+            put_pixel(img_adr, offset, (x_start + i), y_start + 1, color)
+    else:
+        for i in range(size):
+            put_pixel(img_adr, offset, x_start + i, y_end, color)
+            put_pixel(img_adr, offset, x_start + i, y_end - 1, color)
+
+
+def put_side(left, img_adr, offset, size, x_start, y_start, x_end, y_end, color):
+    if left:
+        for i in range(size):
+            put_pixel(img_adr, offset, x_start, y_start + i, color)
+            put_pixel(img_adr, offset, x_start + 1, y_start + i, color)
+    else:
+        for i in range(size):
+            put_pixel(img_adr, offset, x_end, y_start + i, color)
+            put_pixel(img_adr, offset, x_end - 1, y_start + i, color)
+
+
+def draw_case(maze, height, width, col, row, img_adr, offset, size, cell, x_start, y_start, x_end, y_end, color):
+    if row == 0:
+        put_topbottom(True, img_adr, offset, size, x_start, y_start, x_end, y_end, color)
+        put_topbottom(True, img_adr, offset, size, x_start, y_start + 2, x_end, y_end, color)
+    if row == height - 1:
+        put_topbottom(False, img_adr, offset, size, x_start, y_start, x_end, y_end, color)
+        put_topbottom(False, img_adr, offset, size, x_start, y_start, x_end, y_end - 2, color)
+    if col == 0:
+        put_side(True, img_adr, offset, size, x_start, y_start, x_end, y_end, color)
+        put_side(True, img_adr, offset, size, x_start + 2, y_start, x_end, y_end, color)
+    if col == width - 1:
+        put_side(False, img_adr, offset, size, x_start, y_start, x_end, y_end, color)
+        put_side(False, img_adr, offset, size, x_start, y_start, x_end - 2, y_end, color)
+    if cell.N:
+        put_topbottom(True, img_adr, offset, size, x_start, y_start, x_end, y_end, color)
+    if cell.S:
+        put_topbottom(False, img_adr, offset, size, x_start, y_start, x_end, y_end, color)
+    if cell.W:
+        put_side(True, img_adr, offset, size, x_start, y_start, x_end, y_end, color)
+    if cell.E:
+        put_side(False, img_adr, offset, size, x_start, y_start, x_end, y_end, color)
+
+
+def draw_wall(maze, offset, img_adr, height, width):
+    white = 0xFFFFFFFF
+    blue = 0xFF0000FF
+    green = 0xFF00FF00
+    purple = 0xA9A9A9FF
+    fortytwo = 0xCCFFFFFF
+    size = 50
+    for col in range(height):
+        for row in range(width):
+            cell = maze.grid[row][col]
+            x_start = col * size
+            y_start = row * size
+            x_end = ((col + 1) * size) - 1
+            y_end = ((row + 1) * size) - 1
+            if (col, row) in maze.path:
+                for i in range(size):
+                    for j in range(size):
+                        put_pixel(img_adr, offset, col * size + j, row * size + i, purple)
+            if (col, row) == maze.entry:
+                for i in range(size):
+                    for j in range(size):
+                        put_pixel(img_adr, offset, col * size + j, row * size + i, blue)
+            if (col, row) == maze.exit:
+                for i in range(size):
+                    for j in range(size):
+                        put_pixel(img_adr, offset, col * size + j, row * size + i, green)
+            if cell.isftwo:
+                for i in range(size):
+                    for j in range(size):
+                        put_pixel(img_adr, offset, col * size + j, row * size + i, fortytwo)
+            draw_case(maze, height, width, col, row, img_adr, offset, size, cell, x_start, y_start, x_end, y_end, white)
+
 def window(maze, maze_HEIGHT, maze_WIDTH):
+
     def win_close(key, *param):
+        print(key)
         if key == 65307:
             mlx.mlx_loop_exit(param[0])
-
-    def put_pixel(img_adr, offset, x, y, color):
-        img_adr[y * offset + x] = color
-
-
-    def put_case(maze, width, height, img_adr, offset, color, tile):
-        blue = 0xFF0000FF
-        green = 0xFF00FF00
-        white = 0xFFFFFFFF
-        wall = 2
-        for col in range(height):
-            for row in range(width):
-                cell = maze.grid[row][col]
-                for y in range(tile):
-                    for x in range(tile):
-                        if (col, row) == maze.entry:
-                            put_pixel(img_adr, offset, (col * tile + x), (row * tile + y), blue)
-                        elif (col, row) == maze.exit:
-                            put_pixel(img_adr, offset, (col * tile + x), (row * tile + y), green)
-                        elif (col, row) in maze.path:
-                            color = 0xA9A9A9FF
-                            put_pixel(img_adr, offset, (col * tile + x), (row * tile + y), color)
-                        if (cell.N and y < wall):
-                            put_pixel(img_adr, offset, (col * tile + x), (row * tile + y), white)
-                        elif (cell.S and y >= tile - wall):
-                            put_pixel(img_adr, offset, (col * tile + x), (row * tile + y), white)
-                        if (cell.E and x >= tile - wall):
-                            put_pixel(img_adr, offset, (col * tile + x), (row * tile + y), white)
-                        elif (cell.W and x < wall):
-                            put_pixel(img_adr, offset, (col * tile + x), (row * tile + y), white)
-
 
     mlx = Mlx()
 
@@ -446,8 +519,8 @@ def window(maze, maze_HEIGHT, maze_WIDTH):
     img_adr, bpp, line_length, endian = mlx.mlx_get_data_addr(mlx_img)
     img_adr = img_adr.cast('I')
     offset = line_length // (bpp // 8)
-
-    put_case(maze, maze_WIDTH, maze_HEIGHT, img_adr, offset, 0, tile_size)
+    # put_case(maze, maze_WIDTH, maze_HEIGHT, img_adr, offset, 0, tile_size)
+    draw_wall(maze, offset, img_adr, maze_HEIGHT, maze_WIDTH)
     mlx.mlx_put_image_to_window(init, mlx_win, mlx_img, 0, 0)
     mlx.mlx_key_hook(mlx_win, win_close, init)
     mlx.mlx_loop(init)
