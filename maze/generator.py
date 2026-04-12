@@ -119,6 +119,23 @@ def convert_maze_output(maze):
             for x in range(maze.width):
                 f.write(f"{format(convert_bit(maze.grid[y][x]), "X")}")
             f.write("\n")
+        f.write("\n")
+        f.write(f"{maze.entry[0]},{maze.entry[1]}\n")
+        f.write(f"{maze.exit[0]},{maze.exit[1]}\n")
+        for i in range(len(maze.path) - 1):
+            current = maze.path[i]
+            next_   = maze.path[i + 1]
+            dx = next_[0] - current[0]
+            dy = next_[1] - current[1]
+            if dy == +1:
+                direction = "S"
+            if dy == -1:
+                direction = "N"
+            if dx == +1:
+                direction = "W"
+            if dx == -1:
+                direction = "E"
+            f.write(f"{direction}")
 
 
 def initforty_two(maze):
