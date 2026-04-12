@@ -1,81 +1,99 @@
-from . import generator
+from collections import deque
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from maze import Maze
 
 
-def no_wall(direction, maze, coordinate):
-    wall = False
+def no_wall(direction: str, maze: "Maze", coordinate: tuple[int, int]) -> bool:
+    """
+    Check whether a passage exists in the given direction from a cell.
+
+    Args:
+        direction: One of "N", "E", "S", "W".
+        maze: The Maze object containing the grid.
+        coordinate: (x, y) position of the cell to inspect.
+
+    Returns:
+        True if the wall in that direction is open, False otherwise.
+    """
     x, y = coordinate
-    if direction == "N" and not maze.grid[y][x].N:
-        wall = True
-    elif direction == "E" and not maze.grid[y][x].E:
-        wall = True
-    elif direction == "S" and not maze.grid[y][x].S:
-        wall = True
-    elif direction == "W" and not maze.grid[y][x].W:
-        wall = True
-    return wall
+    cell = maze.grid[y][x]
+    return {
+        "N": not cell.N,
+        "E": not cell.E,
+        "S": not cell.S,
+        "W": not cell.W,
+    }.get(direction, False)
 
 
-
-def bfs(maze):
+def bfs(maze: "Maze") -> None:
     """
-    Trouve le PLUS COURT chemin entre entrée et sortie.
+    Find the shortest path between the entry and the exit using BFS.
 
-    Algorithme :
-    → parcours en largeur (queue FIFO)
+    The algorithm runs a FIFO breadth-first search from the maze entry:
+        1. Start from the entry cell and mark it visited.
+        2. Explore all reachable neighbours (no wall, not visited, breakable).
+        3. Record each cell's parent to allow path reconstruction.
+        4. Stop as soon as the exit cell is dequeued.
+        5. Walk back through the parent map to build the final path.
 
-    Étapes :
-    1. on part de l'entrée
-    2. on explore tous les voisins accessibles
-    3. on stocke les parents (pour reconstruire le chemin)
-    4. quand on atteint la sortie → stop
-    5. on remonte le chemin avec parent
+    Result:
+        ``maze.path`` is populated with the ordered list of (x, y) coordinates
+        from entry to exit (inclusive). If no path exists, the list is empty.
 
-    Résultat :
-    → maze.path contient le chemin final
+    Note:
+        BFS guarantees the shortest path and handles mazes with loops correctly.
 
-    Important :
-    → marche même avec des boucles
-    → garantit le plus court chemin
+    Args:
+        maze: The Maze object to solve. Its ``path`` attribute is overwritten.
     """
-    maze.grid[0][0].isbreakable = False
     maze.path = []
-    x, y = maze.entry
-    cells = [(x, y)]
-    parent = {}
+
     for row in maze.grid:
         for cell in row:
             cell.visited = False
+
+    x, y = maze.entry
+    queue: deque[tuple[int, int]] = deque([(x, y)])
     maze.grid[y][x].visited = True
-    while (cells):
-        x, y = cells.pop(0)
+    parent: dict[tuple[int, int], tuple[int, int]] = {}
+
+    while queue:
+        x, y = queue.popleft()
+
         if (x, y) == maze.exit:
             break
-        neighbors = []
 
-        if y > 0 and not maze.grid[y-1][x].visited and maze.grid[y-1][x].isbreakable:
-            neighbors.append(("N", x, y-1))
+        n = maze.grid[y - 1][x] if y > 0 else None
+        e = maze.grid[y][x + 1] if x < maze.width - 1 else None
+        s = maze.grid[y + 1][x] if y < maze.height - 1 else None
+        w = maze.grid[y][x - 1] if x > 0 else None
 
-        if x < maze.width - 1 and not maze.grid[y][x+1].visited and maze.grid[y][x+1].isbreakable:
-            neighbors.append(("E", x+1, y))
+        candidates: list[tuple[str, int, int]] = []
+        if n:
+            candidates.append(("N", x, y - 1))
+        if e:
+            candidates.append(("E", x + 1, y))
+        if s:
+            candidates.append(("S", x, y + 1))
+        if w:
+            candidates.append(("W", x - 1, y))
 
-        if y < maze.height - 1 and not maze.grid[y+1][x].visited and maze.grid[y+1][x].isbreakable:
-            neighbors.append(("S", x, y+1))
-
-        if x > 0 and not maze.grid[y][x-1].visited and maze.grid[y][x-1].isbreakable:
-            neighbors.append(("W", x-1, y))
-
-        for neighbor in neighbors:
-            direction, nx, ny = neighbor
-            coordinate = x, y
-            good_way = no_wall(direction, maze, coordinate)
-            if good_way and not maze.grid[ny][nx].visited and maze.grid[ny][nx].isbreakable:
-                maze.grid[ny][nx].visited = True
+        for direction, nx, ny in candidates:
+            neighbour = maze.grid[ny][nx]
+            if (
+                no_wall(direction, maze, (x, y))
+                and not neighbour.visited
+                and neighbour.isbreakable
+            ):
+                neighbour.visited = True
                 parent[(nx, ny)] = (x, y)
-                cells.append((nx, ny))
+                queue.append((nx, ny))
+
     position = maze.exit
     while position in parent:
         maze.path.append(position)
         position = parent[position]
     maze.path.append(maze.entry)
     maze.path.reverse()
-    # display_maze(maze)

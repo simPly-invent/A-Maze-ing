@@ -1,141 +1,218 @@
+from __future__ import annotations
+
+import sys
+from typing import Callable
+
+from pydantic import ValidationError
+
 from maze import *
 
 
+_COLORS: dict[str, str] = {
+    "RED": RED,
+    "GREEN": GREEN,
+    "YELLOW": YELLOW,
+    "MAGENTA": MAGENTA,
+}
+
+_COLOR_PROMPT = (
+    "Which color do you want?\n"
+    "-> \033[31mRED\033[0m\n"
+    "-> \033[32mGREEN\033[0m\n"
+    "-> \033[33mYELLOW\033[0m\n"
+    "-> \033[35mMAGENTA\033[0m\n: "
+)
+
+
 class Menu:
-    def __init__(self, maze_conf, perfect, color):
+    """
+    Interactive text menu for configuring and launching maze generation.
+
+    Attributes:
+        maze_conf: Validated maze configuration (dimensions, entry, exit…).
+        color: Current ANSI color code used by the renderer.
+        perfect: Whether the generated maze should be perfect (loop-free).
+    """
+
+    def __init__(self, maze_conf: Config, perfect: bool, color: str) -> None:
         self.maze_conf = maze_conf
         self.color = color
         self.perfect = perfect
-    
 
-    def growing_tree_menu(self, type_display) -> Maze:
-        maze_test = Maze(self.maze_conf.HEIGHT, self.maze_conf.WIDTH, self.maze_conf.ENTRY, self.maze_conf.EXIT)
-        initforty_two(maze_test)
-        coords = list(map(int, input("starting generation from (x,y) ?\n").split(",")))
-        x, y = coords
-        growing_tree(maze_test, y, x, self.color, type_display)
-        if not self.perfect:
-            random_breaker(maze_test, 0.10)
-        bfs(maze_test)
-        return maze_test
-    
-    def dfs_menu(self, type_display) -> Maze:
-        maze_test = Maze(self.maze_conf.HEIGHT, self.maze_conf.WIDTH, self.maze_conf.ENTRY, self.maze_conf.EXIT)
-        initforty_two(maze_test)
-        dfs(maze_test, color, type_display)
-        if not self.perfect:
-            random_breaker(maze_test, 0.10)
-        bfs(maze_test)
-        return maze_test
+    # ------------------------------------------------------------------
+    # Generation methods
+    # ------------------------------------------------------------------
 
-    def change_color(self):pass
+    def growing_tree_menu(self, type_display: str) -> Maze:
+        """
+        Build a maze using the Growing Tree algorithm.
 
-    
+        Prompts the user for a starting coordinate, runs the generator,
+        optionally breaks extra walls, then solves the maze with BFS.
 
+        Args:
+            type_display: Rendering mode forwarded to the generator
+                          ("ascii" enables step-by-step animation).
 
-if __name__ == "__main__":
-    r = open("config.txt", "r")
-    config = parser_conf(r.read())
-    try:
-        maze_conf = Config(
-            WIDTH=int(config["WIDTH"]),
-            HEIGHT=int(config["HEIGHT"]),
-            ENTRY=tuple(map(int, config["ENTRY"].split(","))),
-            EXIT=tuple(map(int, config["EXIT"].split(","))),
-            PERFECT=config["PERFECT"].lower() == "true"
+        Returns:
+            The fully generated and solved Maze object.
+        """
+        maze = Maze(
+            self.maze_conf.HEIGHT,
+            self.maze_conf.WIDTH,
+            self.maze_conf.ENTRY,
+            self.maze_conf.EXIT,
         )
-    except ValidationError as e:
-        print(e)
-        exit(1)
+        initforty_two(maze)
+        coords = list(map(int, input("Starting generation from (x,y)?\n").split(",")))
+        x, y = coords
+        growing_tree(maze, y, x, self.color, type_display)
+        if not self.perfect:
+            random_breaker(maze, 0.10)
+        bfs(maze)
+        return maze
 
-    try:
-        perfect = maze_conf.PERFECT
-        color = RED
-        m = Menu(maze_conf, perfect, color)
-        intro_animation(color)
-        algo = m.dfs_menu
-        Maze_render = "Ascii render"
+    def dfs_menu(self, type_display: str) -> Maze:
+        """
+        Build a maze using the Depth-First Search algorithm.
+
+        Args:
+            type_display: Rendering mode forwarded to the generator
+                          ("ascii" enables step-by-step animation).
+
+        Returns:
+            The fully generated and solved Maze object.
+        """
+        maze = Maze(
+            self.maze_conf.HEIGHT,
+            self.maze_conf.WIDTH,
+            self.maze_conf.ENTRY,
+            self.maze_conf.EXIT,
+        )
+        initforty_two(maze)
+        dfs(maze, self.color, type_display)
+        if not self.perfect:
+            random_breaker(maze, 0.10)
+        bfs(maze)
+        return maze
+
+    def change_color(self) -> None:
+        """Prompt the user to pick a new display color."""
+        choice = input(_COLOR_PROMPT).upper()
+        self.color = _COLORS.get(choice, self.color)
+
+    # ------------------------------------------------------------------
+    # Main event loop
+    # ------------------------------------------------------------------
+
+    def run(self) -> None:
+        """
+        Start the interactive main menu loop.
+
+        Presents options to the user and dispatches actions until the
+        user chooses to quit or an unrecoverable error occurs.
+        """
+        algo: Callable[[str], Maze] = self.dfs_menu
+        render_label = "Ascii render"
         rl_render = "ascii"
-        maze = None
-        type_display = "color"
+        maze: Maze | None = None
+
+        intro_animation(self.color)
+
         while True:
-            print(" ------------")
-            print("| board menu |")
-            print("  ------------")
-            print(f"State of the maze: {'perfect' if m.perfect else 'not perfect'}\nglobal dimensions = {m.maze_conf.HEIGHT}, {m.maze_conf.WIDTH}\nAlgo : {algo.__name__.replace("_", " ")}\nRender : {Maze_render}")
-            print(" --------------------------- ")
-            print("| Menu, do what you want  ? |")
-            print(" --------------------------- ")
-            user = input(f"\n\n 1) launch the maze generation\n 2) switch render \n 3) switch Algoritms \n 4) switch perfect/not perfect\n 5) change maze dimension\n 6) change the color of the maze \n")
-            if not maze and user == "6":
-                print("no maze can be found")
-                continue
+            algo_label = algo.__name__.replace("_", " ")
+            print(
+                " ------------\n"
+                "| board menu |\n"
+                "  ------------\n"
+                f"State      : {'perfect' if self.perfect else 'not perfect'}\n"
+                f"Dimensions : {self.maze_conf.HEIGHT} x {self.maze_conf.WIDTH}\n"
+                f"Algorithm  : {algo_label}\n"
+                f"Render     : {render_label}\n"
+                " ---------------------------\n"
+                "| Menu, what do you want?  |\n"
+                " ---------------------------"
+            )
+            user = input(
+                "\n 1) Launch maze generation\n"
+                " 2) Switch render\n"
+                " 3) Switch algorithm\n"
+                " 4) Toggle perfect / not perfect\n"
+                " 5) Change maze dimensions\n"
+                " 6) Change maze color\n"
+                ": "
+                )
+
             if user == "1":
                 while True:
                     maze = algo(rl_render)
                     convert_maze_output(maze)
                     if rl_render == "ascii":
                         print("\033c")
-                        display_maze(maze, color)
-                        input("\nPressez Entrer pour afficher le menu...")
-                        break 
+                        display_maze(maze, self.color)
+                        input("\nPress Enter to return to the menu...")
+                        break
                     else:
-                        num = goodreturn(maze, m.maze_conf.HEIGHT, m.maze_conf.WIDTH)
-                        if num == 1:
+                        result = goodreturn(maze, self.maze_conf.HEIGHT, self.maze_conf.WIDTH)
+                        if result != 2:
                             break
-                        elif num == 2:
-                            continue 
-                        else:
-                            break
-                continue
+
             elif user == "2":
                 if rl_render == "ascii":
-                    Maze_render = "Mlx render"
+                    render_label = "Mlx render"
                     rl_render = "mlx"
                 else:
-                    Maze_render = "Ascii render"
+                    render_label = "Ascii render"
                     rl_render = "ascii"
                 print("\033c")
-                continue
+
             elif user == "3":
-                if algo == m.growing_tree_menu:
-                    algo = m.dfs_menu
-                else:
-                    algo = m.growing_tree_menu
+                algo = self.dfs_menu if algo == self.growing_tree_menu else self.growing_tree_menu
                 print("\033c")
-                continue
+
             elif user == "4":
-                type_display = "perfect"
-                m.perfect = not m.perfect
+                self.perfect = not self.perfect
                 print("\033c")
-                continue
+
             elif user == "5":
-                user_dimension = input("'height,width' <- format without space please\n:")
-                m.maze_conf.HEIGHT, m.maze_conf.WIDTH = map(int, user_dimension.split(","))
+                dims = input("Enter dimensions as 'height,width' (no spaces):\n: ")
+                self.maze_conf.HEIGHT, self.maze_conf.WIDTH = map(int, dims.split(","))
                 print("\033c")
-                continue
+
             elif user == "6":
-                type_display = "color"
+                if maze is None:
+                    print("No maze has been generated yet.")
+                    continue
+                self.change_color()
                 print("\033c")
-                color = input("Which color you want ? \n\
--> \033[31mRED\033[0m\n\
--> \033[32mGREEN\033[0m\n\
--> \033[33mYELLOW\033[0m\n->\
- \033[35mMAGENTA\033[0m\n: ")
-                color = color.upper()
-                if color == "GREEN":
-                    color = GREEN
-                if color == "RED":
-                    color = RED
-                if color == "YELLOW":
-                    color = YELLOW
-                if color == "MAGENTA":
-                    color = MAGENTA
-                print("\033c")
-                display_maze(maze, color)
-                continue
+                display_maze(maze, self.color)
+
             else:
-                print("goodbye :(")
+                print("Goodbye :)")
                 break
-    except (KeyboardInterrupt, ValueError) as e:
-        print(f"\nan error occurred: {e}")
+
+
+if __name__ == "__main__":
+    with open("config.txt", "r") as f:
+        raw = f.read()
+
+    config = parser_conf(raw)
+
+    try:
+        maze_conf = Config(
+            WIDTH=int(config["WIDTH"]),
+            HEIGHT=int(config["HEIGHT"]),
+            ENTRY=tuple(map(int, config["ENTRY"].split(","))),
+            EXIT=tuple(map(int, config["EXIT"].split(","))),
+            PERFECT=config["PERFECT"].lower() == "true",
+        )
+    except ValidationError as exc:
+        print(exc)
+        sys.exit(1)
+
+    try:
+        menu = Menu(maze_conf, maze_conf.PERFECT, RED)
+        menu.run()
+    except (KeyboardInterrupt, ValueError) as exc:
+        print(f"\nAn error occurred: {exc}")
+        sys.exit(1)

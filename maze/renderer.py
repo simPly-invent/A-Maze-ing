@@ -119,9 +119,13 @@ def put_side(left, img_adr, offset, size, x_start, y_start, x_end, y_end, color)
             put_pixel(img_adr, offset, x_end - 1, y_start + i, color)
 
 
-def draw_case(maze, height, width, col, row, img_adr, offset, size, cell, x_start, y_start, x_end, y_end, color):
+def draw_case(maze, height, width, col, 
+              row, img_adr, offset, size, 
+              cell, x_start, y_start, x_end, y_end, color):
     if row == 0:
-        put_topbottom(True, img_adr, offset, size, x_start, y_start, x_end, y_end, color)
+        put_topbottom(True, img_adr, 
+                      offset, size, x_start, 
+                      y_start, x_end, y_end, color)
         put_topbottom(True, img_adr, offset, size, x_start, y_start + 2, x_end, y_end, color)
     if row == height - 1:
         put_topbottom(False, img_adr, offset, size, x_start, y_start, x_end, y_end, color)

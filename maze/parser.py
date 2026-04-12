@@ -1,6 +1,18 @@
 from pydantic import BaseModel, Field, model_validator
 
+
 class Config(BaseModel):
+    """
+    Validated configuration model for the maze generator.
+
+    Attributes:
+        WIDTH: Maze width in cells (0-1000).
+        HEIGHT: Maze height in cells (0-1000).
+        ENTRY: Entry point coordinates (x, y).
+        EXIT: Exit point coordinates (x, y).
+        PERFECT: Whether to generate a perfect maze (no loops).
+    """
+
     WIDTH: int = Field(ge=0, le=1000)
     HEIGHT: int = Field(ge=0, le=1000)
     ENTRY: tuple[int, int]
@@ -8,30 +20,31 @@ class Config(BaseModel):
     PERFECT: bool
 
     @model_validator(mode="after")
-    def check_rules(self):
-        if self.WIDTH == 3 and self.HEIGHT == 3:
-            raise ValueError("maze to small to be create")
+    def check_rules(self) -> "Config":
+        """Reject maze dimensions that are too small to be generated."""
+        if self.WIDTH <= 3 and self.HEIGHT <= 3:
+            raise ValueError("maze is too small to be created")
         return self
 
 
-def parser_conf(data):
+def parser_conf(data: str) -> dict[str, str]:
     """
-    Parse le fichier config.txt.
+    Parse a 'config.txt' file into a key/value dictionary.
 
-    Format attendu :
-    KEY=VALUE
+    Expected format::
 
-    Ignore :
-    → lignes vides
-    → commentaires (#)
+        KEY=VALUE
 
-    Retour :
-    → dictionnaire avec les configs
+    Lines that are empty or start with '#' are ignored.
+    Each valid line must contain exactly one '=' separator.
 
-    En gros :
-    → permet de config le labyrinthe facilement
+    Args:
+        data: Raw file content as a string.
+
+    Returns:
+        A dictionary mapping configuration keys to their string values.
     """
-    config_dico = {}
+    config: dict[str, str] = {}
     for line in data.split("\n"):
         line = line.strip()
         if not line or line.startswith("#"):
@@ -39,5 +52,5 @@ def parser_conf(data):
         if "=" not in line:
             continue
         key, value = line.split("=", 1)
-        config_dico[key] = value
-    return config_dico
+        config[key.strip()] = value.strip()
+    return config
