@@ -62,7 +62,7 @@ if __name__ == "__main__":
             print(" ------------")
             print("| board menu |")
             print("  ------------")
-            print(f"State of the maze: {'perfect' if perfect else 'not perfect'}\nglobal dimensions = {m.maze_conf.HEIGHT}, {m.maze_conf.WIDTH}\nAlgo : {algo.__name__.replace("_", " ")}\nRender : {Maze_render}")
+            print(f"State of the maze: {'perfect' if m.perfect else 'not perfect'}\nglobal dimensions = {m.maze_conf.HEIGHT}, {m.maze_conf.WIDTH}\nAlgo : {algo.__name__.replace("_", " ")}\nRender : {Maze_render}")
             print(" --------------------------- ")
             print("| Menu, do what you want  ? |")
             print(" --------------------------- ")
@@ -75,7 +75,7 @@ if __name__ == "__main__":
                     maze = algo(rl_render)
                     if rl_render == "ascii":
                         print("\033c")
-                        display_maze(maze, color) # On affiche le maze déjà généré
+                        display_maze(maze, color)
                         input("\nPressez Entrer pour afficher le menu...")
                         break 
                     else:
@@ -88,7 +88,6 @@ if __name__ == "__main__":
                             break
                 continue
             elif user == "2":
-                # Correction du switch pour qu'il alterne vraiment
                 if rl_render == "ascii":
                     Maze_render = "Mlx render"
                     rl_render = "mlx"
@@ -106,7 +105,7 @@ if __name__ == "__main__":
                 continue
             elif user == "4":
                 type_display = "perfect"
-                perfect = not perfect
+                m.perfect = not m.perfect
                 print("\033c")
                 continue
             elif user == "5":

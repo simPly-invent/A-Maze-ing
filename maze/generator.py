@@ -190,7 +190,6 @@ def random_breaker(maze, chance=0.1):
     count = 0
     for y in range(maze.height):
         for x in range(maze.width):
-            # Mur Est
             if x < maze.width - 1:
                 if random.random() < chance:
                     c1, c2 = maze.grid[y][x], maze.grid[y][x+1]
@@ -198,7 +197,6 @@ def random_breaker(maze, chance=0.1):
                         cells_braker(c1, c2, "E")
                         c1.generate = c2.generate = True # Indispensable pour l'affichage
                         count += 1
-            # Mur Sud
             if y < maze.height - 1:
                 if random.random() < chance:
                     c1, c2 = maze.grid[y][x], maze.grid[y+1][x]
@@ -206,8 +204,6 @@ def random_breaker(maze, chance=0.1):
                         cells_braker(c1, c2, "S")
                         c1.generate = c2.generate = True # Indispensable pour l'affichage
                         count += 1
-    # Ce print te dira enfin la vérité !
-    print(f"\033[32m[DEBUG] Random Breaker : {count} murs supprimés.\033[0m")
 
 
 def growing_tree(maze, x, y, color, type_display):

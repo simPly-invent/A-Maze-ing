@@ -194,7 +194,6 @@ def goodreturn(maze, maze_HEIGHT, maze_WIDTH):
                 mlx.mlx_destroy_image(init, mlx_img)
                 mlx.mlx_destroy_window(init, mlx_win)
                 mlx.mlx_loop_exit(init)
-                # sys.exit(0)
             elif key == 32:
                 oui = 2
                 print("Relance du labyrinthe...")

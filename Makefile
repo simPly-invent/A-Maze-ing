@@ -1,16 +1,13 @@
 VENV := .venv
 PYTHON := $(VENV)/bin/python
-COMP := python3 a_maze_ing.py
-ENV := .venv/bin/activate
-CREATE_VENV := python3 -m venv .venv 
-SHELL := /bin/bash
+PIP := $(VENV)/bin/pip
+COMP := $(PYTHON) a_maze_ing.py
+INSTALL := python3 -m venv .venv && $(PIP) install -r requirements.txt
 PATH_PY_CACHE := maze/__pycache__
 
 
 install :
-	$(CREATE_VENV)
-	source $(ENV)
-	pip install -r requirements.txt
+	$(INSTALL)
 
 run:
 	$(COMP)
