@@ -108,6 +108,18 @@ def cells_braker(current, next, direction):
         current.N = False
         next.S = False
 
+def convert_bit(cell):
+    resultat = int(cell.N) << 0 | int(cell.E) << 1 | int(cell.S) << 2 | int(cell.W) << 3
+    return resultat
+
+
+def convert_maze_output(maze):
+    with open("outputfile.txt", "w") as f:
+        for y in range(maze.height):
+            for x in range(maze.width):
+                f.write(f"{format(convert_bit(maze.grid[y][x]), "X")}")
+            f.write("\n")
+
 
 def initforty_two(maze):
     pattern = [

@@ -73,6 +73,7 @@ if __name__ == "__main__":
             if user == "1":
                 while True:
                     maze = algo(rl_render)
+                    convert_maze_output(maze)
                     if rl_render == "ascii":
                         print("\033c")
                         display_maze(maze, color)
