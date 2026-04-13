@@ -163,7 +163,7 @@ def convert_bit(cell: Cell) -> int:
     )
 
 
-def convert_maze_output(maze: Maze) -> None:
+def convert_maze_output(maze: Maze, output: str) -> None:
     """
     Write the maze state to 'outputfile.txt'.
 
@@ -175,7 +175,7 @@ def convert_maze_output(maze: Maze) -> None:
         - Direction sequence of the solution path (e.g. "SSEEN...").
     """
     direction: Optional[str]
-    with open("outputfile.txt", "w") as f:
+    with open(output, "w") as f:
         for y in range(maze.height):
             for x in range(maze.width):
                 f.write(f"{format(convert_bit(maze.grid[y][x]), 'X')}")

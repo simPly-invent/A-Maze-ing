@@ -37,10 +37,11 @@ class Menu:
         perfect: Whether the generated maze should be perfect (loop-free).
     """
 
-    def __init__(self, maze_conf: Config, perfect: bool, color: str) -> None:
+    def __init__(self, maze_conf: Config, perfect: bool, color: str, output: str) -> None:
         self.maze_conf = maze_conf
         self.color = color
         self.perfect = perfect
+        self.output = output
 
     # ------------------------------------------------------------------
     # Generation methods
@@ -68,8 +69,16 @@ class Menu:
         )
         if init_forty:
             initforty_two(maze)
-        coords = list(map(int, input("Starting generation from (x,y)?\n").split(",")))
-        x, y = coords
+        while True:
+            try:
+                coords = list(map(int, input("Starting generation from (x,y)?\n").split(",")))
+                x, y = coords
+                if x < 0 or y < 0 or x >= maze.width or y >= maze.height:
+                    raise ValueError("out of the range")
+            except ValueError as e:
+                print(e)
+            else:
+                break
         growing_tree(maze, y, x, self.color, type_display)
         if not self.perfect:
             random_breaker(maze, 0.10)
@@ -164,7 +173,7 @@ class Menu:
                         print(e)
                         break
                     maze = algo(rl_render, initforty)
-                    convert_maze_output(maze)
+                    convert_maze_output(maze, self.output)
                     if rl_render == "ascii":
                         print("\033c")
                         display_maze(maze, self.color)
@@ -195,10 +204,22 @@ class Menu:
                 print("\033c")
 
             elif user == "5":
-                dims = input("Enter dimensions as 'height,width' (no spaces):\n: ")
-                self.maze_conf.HEIGHT, self.maze_conf.WIDTH = map(int, dims.split(","))
+                while True:
+                    try:
+                        dims = input("Enter dimensions as 'height,width':\n: ")
+                        h, w = map(int, dims.split(","))
+                        Config(HEIGHT=h, WIDTH=w,
+                            ENTRY=self.maze_conf.ENTRY,
+                            EXIT=self.maze_conf.EXIT,
+                            OUTPUT=self.output,
+                            PERFECT=self.perfect)
+                        self.maze_conf.HEIGHT = h
+                        self.maze_conf.WIDTH = w
+                    except (ValueError, ValidationError) as e:
+                        print(e)
+                    else:
+                        break
                 print("\033c")
-
             elif user == "6":
                 if maze is None:
                     print("No maze has been generated yet.")
@@ -223,11 +244,12 @@ if __name__ == "__main__":
             HEIGHT=int(config["HEIGHT"]),
             ENTRY=tuple(map(int, config["ENTRY"].split(","))),
             EXIT=tuple(map(int, config["EXIT"].split(","))),
+            OUTPUT=str(config["OUTPUT_FILE"]),
             PERFECT=config["PERFECT"].lower() == "true",
         )
     except ValidationError as exc:
         for error in exc.errors():
-            field = error["loc"][0]
+            field = error["loc"][0] if error["loc"] else "Config"
             msg = error["msg"]
             print(f"{field}: {msg}")
         sys.exit()
@@ -236,7 +258,7 @@ if __name__ == "__main__":
         sys.exit()
 
     try:
-        menu = Menu(maze_conf, maze_conf.PERFECT, RED)
+        menu = Menu(maze_conf, maze_conf.PERFECT, RED, maze_conf.OUTPUT)
         menu.run()
     except KeyboardInterrupt:
         print("\nGoodbye !")
@@ -246,7 +268,7 @@ if __name__ == "__main__":
         print(f"\nLocation error: {exc}")
     except ValidationError as exc:
         for error in exc.errors():
-            field = error["loc"][0]
+            field = error["loc"][0] if error["loc"] else "Config"
             msg = error["msg"]
             print(f"{field}: {msg}")
         sys.exit()

@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field, model_validator
+from typing import ClassVar
 
 
 
@@ -19,14 +20,20 @@ class Config(BaseModel):
     ENTRY: tuple[int, int]
     EXIT: tuple[int, int]
     PERFECT: bool
+    OUTPUT: str
 
+    PROTECTED_FILES: ClassVar[set[str]] = {
+        "requirements.txt", "config.txt", "Makefile", "a_maze_ing.py"
+}
     @model_validator(mode="after")
     def check_rules(self) -> "Config":
-        """Reject maze dimensions that are too small to be generated."""
         if self.WIDTH <= 3 and self.HEIGHT <= 3:
             raise ValueError("maze is too small to be created")
+        if not self.OUTPUT.endswith(".txt"):
+            raise ValueError("output must be a .txt file")
+        if self.OUTPUT in Config.PROTECTED_FILES:
+            raise ValueError(f"cannot overwrite protected file: {self.OUTPUT}")
         return self
-
 
 def parser_conf(data: str) -> dict[str, str]:
     """
