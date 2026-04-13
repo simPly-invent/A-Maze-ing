@@ -7,6 +7,9 @@ from pydantic import ValidationError
 
 from maze import *
 
+class CheckErrorLocation(Exception):
+    pass
+
 
 _COLORS: dict[str, str] = {
     "RED": RED,
@@ -43,7 +46,7 @@ class Menu:
     # Generation methods
     # ------------------------------------------------------------------
 
-    def growing_tree_menu(self, type_display: str) -> Maze:
+    def growing_tree_menu(self, type_display: str, init_forty: str) -> Maze:
         """
         Build a maze using the Growing Tree algorithm.
 
@@ -63,7 +66,8 @@ class Menu:
             self.maze_conf.ENTRY,
             self.maze_conf.EXIT,
         )
-        initforty_two(maze)
+        if init_forty:
+            initforty_two(maze)
         coords = list(map(int, input("Starting generation from (x,y)?\n").split(",")))
         x, y = coords
         growing_tree(maze, y, x, self.color, type_display)
@@ -72,7 +76,7 @@ class Menu:
         bfs(maze)
         return maze
 
-    def dfs_menu(self, type_display: str) -> Maze:
+    def dfs_menu(self, type_display: str, init_forty: str) -> Maze:
         """
         Build a maze using the Depth-First Search algorithm.
 
@@ -89,7 +93,8 @@ class Menu:
             self.maze_conf.ENTRY,
             self.maze_conf.EXIT,
         )
-        initforty_two(maze)
+        if init_forty:
+            initforty_two(maze)
         dfs(maze, self.color, type_display)
         if not self.perfect:
             random_breaker(maze, 0.10)
@@ -112,6 +117,7 @@ class Menu:
         Presents options to the user and dispatches actions until the
         user chooses to quit or an unrecoverable error occurs.
         """
+
         algo: Callable[[str], Maze] = self.dfs_menu
         render_label = "Ascii render"
         rl_render = "ascii"
@@ -145,11 +151,25 @@ class Menu:
 
             if user == "1":
                 while True:
-                    maze = algo(rl_render)
+                    initforty = check_forty_two_length(self.maze_conf.HEIGHT, self.maze_conf.WIDTH)
+                    maze = algo("", initforty)
+                    ex, ey = maze.entry
+                    sx, sy = maze.exit
+                    try:
+                        if not maze.grid[ey][ex].isbreakable:
+                            raise CheckErrorLocation("entry is not available")
+                        if not maze.grid[sy][sx].isbreakable:
+                            raise CheckErrorLocation("exit cannot be choice")
+                    except CheckErrorLocation as e:
+                        print(e)
+                        break
+                    maze = algo(rl_render, initforty)
                     convert_maze_output(maze)
                     if rl_render == "ascii":
                         print("\033c")
                         display_maze(maze, self.color)
+                        if not initforty:
+                            print("the 42 cannot be contain in maze")
                         input("\nPress Enter to return to the menu...")
                         break
                     else:
@@ -188,7 +208,7 @@ class Menu:
                 display_maze(maze, self.color)
 
             else:
-                print("Goodbye :)")
+                print("Goodbye :", end=")")
                 break
 
 
@@ -213,6 +233,6 @@ if __name__ == "__main__":
     try:
         menu = Menu(maze_conf, maze_conf.PERFECT, RED)
         menu.run()
-    except (KeyboardInterrupt, ValueError) as exc:
+    except (KeyboardInterrupt, ValueError, CheckErrorLocation) as exc:
         print(f"\nAn error occurred: {exc}")
         sys.exit(1)

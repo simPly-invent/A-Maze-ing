@@ -1,6 +1,31 @@
 import random
 import time
+from .solver import bfs
 from typing import Optional
+
+
+
+class MazeGenerator:
+    def __init__(self, height, width, entry, exit_, seed):
+        self.height = height
+        self.width = width
+        self.entry = entry
+        self.exit_ = exit_
+        self.seed = seed 
+        if self.seed is not None:
+            random.seed(self.seed)
+        self.maze = None
+        self.solution = None
+
+    def generate(self, algo="dfs", start=(0,0)):
+        self.start_gen = start
+        self.maze = Maze(self.height, self.width, self.entry, self.exit_)
+        if algo == "dfs":
+            dfs(self.maze)
+        elif algo == "growing_tree":
+            growing_tree(self.maze, self.start_gen[0], self.start_gen[1])
+        bfs(self.maze)
+        self.solution = self.maze.path
 
 
 class Cell:
@@ -183,6 +208,7 @@ def initforty_two(maze: Maze) -> None:
     Cells that belong to the pattern are marked as non-breakable so
     the generation algorithm cannot remove their walls.
     """
+
     pattern = [
         "4 4 222",
         "4 4   2",
@@ -202,7 +228,7 @@ def initforty_two(maze: Maze) -> None:
                 cell.isftwo = True
 
 
-def dfs(maze: Maze, color: str, type_display: str) -> None:
+def dfs(maze: Maze, color: str = None, type_display: str = None) -> None:
     """
     Generate a maze using Depth-First Search (recursive backtracker).
 
@@ -292,7 +318,8 @@ def random_breaker(maze: Maze, chance: float = 0.1) -> None:
                         c1.generate = c2.generate = True
 
 
-def growing_tree(maze: Maze, x: int, y: int, color: str, type_display: str) -> None:
+def growing_tree(maze: Maze, x: int, y: int, 
+                 color: str = None, type_display: str = None) -> None:
     """
     Generate a maze using the Growing Tree algorithm.
 
