@@ -131,9 +131,8 @@ class Menu:
         render_label = "Ascii render"
         rl_render = "ascii"
         maze: Maze | None = None
-
+        path = True
         intro_animation(self.color)
-
         while True:
             algo_label = algo.__name__.replace("_", " ")
             print(
@@ -155,6 +154,8 @@ class Menu:
                 " 4) Toggle perfect / not perfect\n"
                 " 5) Change maze dimensions\n"
                 " 6) Change maze color\n"
+                " 7) show path or not\n"
+                " 8) exit from the program\n"
                 ": "
                 )
 
@@ -176,7 +177,7 @@ class Menu:
                     convert_maze_output(maze, self.output)
                     if rl_render == "ascii":
                         print("\033c")
-                        display_maze(maze, self.color)
+                        display_maze(maze, self.color, path)
                         if not initforty:
                             print("the 42 cannot be contain in maze")
                         input("\nPress Enter to return to the menu...")
@@ -202,7 +203,6 @@ class Menu:
             elif user == "4":
                 self.perfect = not self.perfect
                 print("\033c")
-
             elif user == "5":
                 while True:
                     try:
@@ -226,8 +226,20 @@ class Menu:
                     continue
                 self.change_color()
                 print("\033c")
-                display_maze(maze, self.color)
-
+                display_maze(maze, self.color, path)
+            elif user == "7":
+                try:
+                    path = not path
+                    print("\033c")
+                    display_maze(maze, self.color, path)
+                except Exception as e:
+                    print(f"error : create maze before show pass or not")
+                else:
+                    continue
+            elif user == "8":
+                print("\033c")
+                print("Goodbye :)")
+                break
             else:
                 print("Goodbye :", end=")")
                 break
@@ -236,7 +248,6 @@ class Menu:
 if __name__ == "__main__":
     with open("config.txt", "r") as f:
         raw = f.read()
-
     try:
         config = parser_conf(raw)
         maze_conf = Config(
@@ -245,7 +256,7 @@ if __name__ == "__main__":
             ENTRY=tuple(map(int, config["ENTRY"].split(","))),
             EXIT=tuple(map(int, config["EXIT"].split(","))),
             OUTPUT=str(config["OUTPUT_FILE"]),
-            PERFECT=config["PERFECT"].lower() == "true",
+            PERFECT=config["PERFECT"].lower() == "true"
         )
     except ValidationError as exc:
         for error in exc.errors():

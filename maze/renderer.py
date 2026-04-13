@@ -28,7 +28,7 @@ def intro_animation(color):
         time.sleep(0.2)
 
 
-def display_maze(maze, color):
+def display_maze(maze, color, path=True):
     """
     Affiche le labyrinthe dans le terminal.
 
@@ -66,7 +66,7 @@ def display_maze(maze, color):
                 line1 += "\033[35m o \033[0m"
             elif not cell.isbreakable:
                 line1 += "███"
-            elif (x, y) in maze.path:
+            elif (x, y) in maze.path and path:
                 line1 += " x "
             else:
                 line1 += "   "
