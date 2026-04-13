@@ -216,9 +216,8 @@ if __name__ == "__main__":
     with open("config.txt", "r") as f:
         raw = f.read()
 
-    config = parser_conf(raw)
-
     try:
+        config = parser_conf(raw)
         maze_conf = Config(
             WIDTH=int(config["WIDTH"]),
             HEIGHT=int(config["HEIGHT"]),
@@ -227,12 +226,27 @@ if __name__ == "__main__":
             PERFECT=config["PERFECT"].lower() == "true",
         )
     except ValidationError as exc:
-        print(exc)
-        sys.exit(1)
+        for error in exc.errors():
+            field = error["loc"][0]
+            msg = error["msg"]
+            print(f"{field}: {msg}")
+        sys.exit()
+    except ValueError as e:
+        print(e)
+        sys.exit()
 
     try:
         menu = Menu(maze_conf, maze_conf.PERFECT, RED)
         menu.run()
-    except (KeyboardInterrupt, ValueError, CheckErrorLocation) as exc:
-        print(f"\nAn error occurred: {exc}")
-        sys.exit(1)
+    except KeyboardInterrupt:
+        print("\nGoodbye !")
+    except ValueError as exc:
+        print(f"\nInvalid value: {exc}")
+    except CheckErrorLocation as exc:
+        print(f"\nLocation error: {exc}")
+    except ValidationError as exc:
+        for error in exc.errors():
+            field = error["loc"][0]
+            msg = error["msg"]
+            print(f"{field}: {msg}")
+        sys.exit()

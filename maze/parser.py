@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, model_validator
 
 
+
 class Config(BaseModel):
     """
     Validated configuration model for the maze generator.
@@ -44,6 +45,7 @@ def parser_conf(data: str) -> dict[str, str]:
     Returns:
         A dictionary mapping configuration keys to their string values.
     """
+    REQUIRED_KEYS = {"WIDTH", "HEIGHT", "ENTRY", "EXIT", "PERFECT"}
     config: dict[str, str] = {}
     for line in data.split("\n"):
         line = line.strip()
@@ -53,4 +55,7 @@ def parser_conf(data: str) -> dict[str, str]:
             continue
         key, value = line.split("=", 1)
         config[key.strip()] = value.strip()
+    missing = REQUIRED_KEYS - config.keys()
+    if missing:
+        raise ValueError(f"missing keys: {missing}")
     return config
