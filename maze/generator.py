@@ -387,7 +387,7 @@ def growing_tree(maze: Maze, x: int, y: int, color: str = None, type_display: st
 
         if type_display == "ascii":
             print("\033c")
-            display_maze(maze, color, path)
+            display_maze(maze, color, True)
             time.sleep(0.04)
 
     open_wall(maze, *maze.entry)

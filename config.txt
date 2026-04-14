@@ -3,4 +3,4 @@ HEIGHT=5
 ENTRY=0,0
 EXIT=2,2
 OUTPUT_FILE= outputfile.txt
-PERFECT=True
+PERFECT=

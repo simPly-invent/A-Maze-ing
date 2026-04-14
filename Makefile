@@ -7,6 +7,8 @@ BUILD := poetry build
 PATH_PY_CACHE := maze/__pycache__ .venv
 PATH_PY_DIST := mazegen/dist
 
+all:
+	make install && make run
 
 install :
 	$(INSTALL)
@@ -21,7 +23,6 @@ build:
 
 clean:
 	rm -rf $(PATH_PY_CACHE) $(PATH_PY_DIST)
-
 
 lint:
 	flake8 . 
