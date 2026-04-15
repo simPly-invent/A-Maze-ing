@@ -1,6 +1,13 @@
 WIDTH=5
 HEIGHT=5
+<<<<<<< HEAD
 ENTRY=1,1
 EXIT=2,2
 OUTPUT_FILE= outputfile.txt
 PERFECT=
+=======
+ENTRY=0,0
+EXIT=2,2
+OUTPUT_FILE= outputfile.txt
+PERFECT=
+>>>>>>> main

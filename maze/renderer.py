@@ -139,7 +139,7 @@ class Render:
         )
 
     def new_window(self, name: str) -> None:
-        self.w.window: Any = self.mlx.mlx_new_window(
+        self.w.window = self.mlx.mlx_new_window(
             self.init, self.w.width, self.w.height, name
         )
 
@@ -228,10 +228,6 @@ def display_maze(
             print(line2)
 
     print(COLOR_MAZE + "└" + "───┴" * (width - 1) + "───┘" + RESET)
-
-
-def test(key: int, params: Any) -> None:
-    render, image, path = params
 
 
 def goodreturn(maze: Maze) -> int:
