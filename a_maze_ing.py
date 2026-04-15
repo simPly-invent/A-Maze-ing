@@ -52,8 +52,8 @@ class Menu:
     def growing_tree_menu(self, type_display: str, init_forty: str) -> Maze:
         """Build a maze using the Growing Tree algorithm."""
         maze = Maze(
-            self.maze_conf.HEIGHT,
             self.maze_conf.WIDTH,
+            self.maze_conf.HEIGHT,
             self.maze_conf.ENTRY,
             self.maze_conf.EXIT,
         )
@@ -85,8 +85,8 @@ class Menu:
     def dfs_menu(self, type_display: str, init_forty: str) -> Maze:
         """Build a maze using the Depth-First Search algorithm."""
         maze = Maze(
-            self.maze_conf.HEIGHT,
             self.maze_conf.WIDTH,
+            self.maze_conf.HEIGHT,
             self.maze_conf.ENTRY,
             self.maze_conf.EXIT,
         )
@@ -122,8 +122,8 @@ class Menu:
                 "| board menu |\n"
                 "  ------------\n"
                 f"State      : {'perfect' if self.perfect else 'not perfect'}\n"
-                f"Dimensions : {self.maze_conf.HEIGHT} "
-                f"x {self.maze_conf.WIDTH}\n"
+                f"Dimensions : {self.maze_conf.WIDTH} "
+                f"x {self.maze_conf.HEIGHT}\n"
                 f"Algorithm  : {algo_label}\n"
                 f"Render     : {render_label}\n"
                 " ---------------------------\n"
@@ -147,7 +147,7 @@ class Menu:
                 while True:
                     try:
                         initforty = check_forty_two_length(
-                            self.maze_conf.HEIGHT, self.maze_conf.WIDTH
+                            self.maze_conf.WIDTH, self.maze_conf.HEIGHT
                         )
                     except IndexError as e:
                         print("oui")
@@ -155,9 +155,9 @@ class Menu:
                     ex, ey = temp_maze.entry
                     sx, sy = temp_maze.exit
                     try:
-                        if ey > self.maze_conf.HEIGHT or ex > self.maze_conf.WIDTH:
+                        if ex > self.maze_conf.WIDTH or ey > self.maze_conf.HEIGHT:
                             raise IndexError("Entry outside of the maze")
-                        if sy > self.maze_conf.HEIGHT or sx > self.maze_conf.WIDTH:
+                        if sx > self.maze_conf.WIDTH or sy > self.maze_conf.HEIGHT:
                             raise IndexError("Exit outside of the maze")
                         if not temp_maze.grid[ey][ex].isbreakable:
                             raise CheckErrorLocation("entry in 42 logo")
@@ -217,7 +217,7 @@ class Menu:
                             OUTPUT=self.output,
                             PERFECT=self.perfect
                         )
-                        self.maze_conf.HEIGHT, self.maze_conf.WIDTH = h, w
+                        self.maze_conf.WIDTH, self.maze_conf.HEIGHT = w, h
 
                     except (ValueError, ValidationError, IndexError) as e:
                         print(e)
@@ -287,7 +287,7 @@ if __name__ == "__main__":
         print("\nGoodbye !")
     except IndexError as e:
         print(e)
-    except (Exception, IndexError) as e:
+    except (Exception) as e:
         print(type(e).__name__)
         print(f"Unexpected error: {e}")
         sys.exit(1)

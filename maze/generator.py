@@ -7,14 +7,14 @@ from .solver import bfs
 class MazeGenerator:
     def __init__(
         self,
-        height: int,
         width: int,
+        height: int,
         entry: Tuple[int, int],
         exit_: Tuple[int, int],
         seed: Optional[int],
     ) -> None:
-        self.height: int = height
         self.width: int = width
+        self.height: int = height
         self.entry: Tuple[int, int] = entry
         self.exit_: Tuple[int, int] = exit_
         self.seed: Optional[int] = seed
@@ -30,7 +30,7 @@ class MazeGenerator:
         start: Tuple[int, int] = (0, 0),
     ) -> None:
         self.start_gen = start
-        self.maze = Maze(self.height, self.width, self.entry, self.exit_)
+        self.maze = Maze(self.width, self.height, self.entry, self.exit_)
         if algo == "dfs":
             dfs(self.maze)
         elif algo == "growing_tree":
@@ -83,13 +83,13 @@ class Maze:
 
     def __init__(
         self,
-        height: int,
         width: int,
+        height: int,
         entry: Tuple[int, int],
         exit_: Tuple[int, int],
     ) -> None:
-        self.height: int = height
         self.width: int = width
+        self.height: int = height
         self.entry: Tuple[int, int] = entry
         self.exit: Tuple[int, int] = exit_
         self.grid: list[list[Cell]] = []
@@ -226,8 +226,8 @@ def initforty_two(maze: Maze) -> None:
         "  4 2  ",
         "  4 222",
     ]
-    start_y = maze.height // 2 - len(pattern) // 2
     start_x = maze.width // 2 - len(pattern[0]) // 2
+    start_y = maze.height // 2 - len(pattern) // 2
 
     for dy, row in enumerate(pattern):
         for dx, char in enumerate(row):
@@ -368,8 +368,8 @@ def growing_tree(
                 cell.generate = False
 
     cells: list[Tuple[int, int]] = [(y, x)]
-    maze.grid[x][y].visited = True
-    maze.grid[x][y].generate = True
+    maze.grid[y][x].visited = True
+    maze.grid[y][x].generate = True
 
     while cells:
         idx = -1 if random.random() < 0.5 else random.randint(0, len(cells) - 1)
