@@ -4,6 +4,17 @@ from .generator import Maze, Cell
 from .utils import RESET
 from mlx import Mlx
 
+class MlxError(Exception):
+    pass
+
+class InitError(MlxError):
+    pass
+
+class WindowError(MlxError):
+    pass
+
+class ImageError(MlxError):
+    pass
 
 class Window:
     def __init__(self) -> None:
@@ -29,7 +40,7 @@ class Image:
         self.case: int = case
         self.red: int = 0xFFFF0000
         self.green: int = 0xFF00FF00
-        self.purple: int = 0xA9A9A9FF
+        self.purple: int = 0x88A9A9FF
         self.white: int = 0xFFFFFFFF
         self.black: int = 0xFF000000
         self.bpp: int = 0
@@ -43,8 +54,12 @@ class Image:
         img_w: int = self.maze.width * self.case
         img_h: int = self.maze.height * self.case
         self.image = mlx.mlx.mlx_new_image(mlx.init, img_w, img_h)
+        if self.image is None:
+            raise ImageError("[MLX_ERROR]: Error during creating image\n")
         addr, bpp, ll, end = mlx.mlx.mlx_get_data_addr(self.image)
         self.address = addr
+        if self.address is None:
+            raise ImageError("[MLX_ERROR]: Error during address assignation\n")
         self.bpp = bpp
         self.line_length = ll
         self.endian = end
@@ -105,13 +120,11 @@ class Image:
 
     def draw_maze(self, path: bool) -> None:
         self.p = MazeCoord()
-        for i in range(1000 * 1000):
+        for i in range(len(self.address)):
             self.address[i] = 0
         if path:
-            print("path drown")
             self.draw_path(self.maze.path, self.purple)
         else:
-            print("path not drown")
             self.draw_path(self.maze.path, self.black)
         self.put_case(self.maze.entry[0], self.maze.entry[1], self.green)
         self.put_case(self.maze.exit[0], self.maze.exit[1], self.red)
@@ -131,6 +144,8 @@ class Render:
     def __init__(self, maze: Maze) -> None:
         self.mlx: Mlx = Mlx()
         self.init: Any = self.mlx.mlx_init()
+        if self.init is None:
+            raise InitError("[MLX_ERROR]: Error during initializing the Mlx instance\n")
         self.maze: Maze = maze
         self.path_show: bool = False
         self.w: Window = Window()
@@ -140,24 +155,22 @@ class Render:
 
     def new_window(self, name: str) -> None:
         self.w.window = self.mlx.mlx_new_window(
-            self.init, self.w.width, self.w.height, name
-        )
+            self.init, self.w.width, self.w.height, name)
+        if self.w.window is None:
+            raise WindowError("[MLX_ERROR]: Error during creating new window\n")
 
     def refresh(self, image: Image, path: Image) -> None:
         if self.path_show:
             self.mlx.mlx_put_image_to_window(
-                self.init, self.w.window, path.image, 0, 0
-            )
+                self.init, self.w.window, path.image, 0, 0)
         else:
             self.mlx.mlx_put_image_to_window(
-                self.init, self.w.window, image.image, 0, 0
-            )
+                self.init, self.w.window, image.image, 0, 0)
 
     def close_window(self, param: Any) -> int:
         self.mlx.mlx_destroy_image(self.init, param.image)
         self.mlx.mlx_destroy_window(self.init, self.w.window)
         self.mlx.mlx_loop_exit(self.init)
-        return 0
 
 
 def intro_animation(color: str) -> None:
@@ -232,22 +245,24 @@ def display_maze(
 
 def goodreturn(maze: Maze) -> int:
     state: int = 0
-    render: Render = Render(maze)
-    render.new_window("A-Maze-Ing")
-    image = Image(render.case, maze)
-    path = Image(render.case, maze)
-    image.new_image(render)
-    path.new_image(render)
-    image.draw_maze(False)
-    path.draw_maze(True)
+    try:
+        render: Render = Render(maze)
+        render.new_window("A-Maze-Ing")
+        image = Image(render.case, maze)
+        path = Image(render.case, maze)
+        image.new_image(render)
+        path.new_image(render)
+        image.draw_maze(False)
+        path.draw_maze(True)
+    except (Exception, ImageError, WindowError, InitError) as error:
+        return 3, error
 
     def catch_key(key: int, params: Any) -> int:
         nonlocal state
-        print(key)
         if key == 112:
             render.path_show = not render.path_show
             render.refresh(image, path)
-            return 0
+            return 0, None
         if key == 65307:
             state = 1
             render.close_window(image)
@@ -256,9 +271,13 @@ def goodreturn(maze: Maze) -> int:
             render.close_window(image)
         return 0
 
-    params = (image, path)
-    render.mlx.mlx_put_image_to_window(render.init, render.w.window, image.image, 0, 0)
-    render.mlx.mlx_key_hook(render.w.window, catch_key, params)
-    render.mlx.mlx_hook(render.w.window, 33, 0, render.close_window, image)
-    render.mlx.mlx_loop(render.init)
-    return state
+    try:
+        params = (image, path)
+        render.mlx.mlx_put_image_to_window(render.init,
+                                           render.w.window, image.image, 0, 0)
+        render.mlx.mlx_key_hook(render.w.window, catch_key, params)
+        render.mlx.mlx_hook(render.w.window, 33, 0, render.close_window, image)
+        render.mlx.mlx_loop(render.init)
+    except Exception as err:
+        return 3, err
+    return state, None

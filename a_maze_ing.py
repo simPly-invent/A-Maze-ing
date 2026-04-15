@@ -110,7 +110,7 @@ class Menu:
         rl_render: str = "ascii"
         maze: Maze | None = None
         path: bool = True
-        intro_animation(self.color)
+        # intro_animation(self.color)
 
         while True:
             if self.i == 35:
@@ -145,13 +145,20 @@ class Menu:
 
             if user == "1":
                 while True:
-                    initforty = check_forty_two_length(
-                        self.maze_conf.HEIGHT, self.maze_conf.WIDTH
-                    )
+                    try:
+                        initforty = check_forty_two_length(
+                            self.maze_conf.HEIGHT, self.maze_conf.WIDTH
+                        )
+                    except IndexError as e:
+                        print("oui")
                     temp_maze = algo("test", initforty)
                     ex, ey = temp_maze.entry
                     sx, sy = temp_maze.exit
                     try:
+                        if ey > self.maze_conf.HEIGHT or ex > self.maze_conf.WIDTH:
+                            raise IndexError("Entry outside of the maze")
+                        if sy > self.maze_conf.HEIGHT or sx > self.maze_conf.WIDTH:
+                            raise IndexError("Exit outside of the maze")
                         if not temp_maze.grid[ey][ex].isbreakable:
                             raise CheckErrorLocation("entry in 42 logo")
                         if not temp_maze.grid[sy][sx].isbreakable:
@@ -159,22 +166,26 @@ class Menu:
                     except CheckErrorLocation as e:
                         print(e)
                         break
-
-                    maze = algo(rl_render, initforty)
-                    convert_maze_output(maze, self.output)
-                    if rl_render == "ascii":
-                        print("\033c")
-                        display_maze(maze, self.color, path)
-                        if not initforty:
-                            print("the 42 cannot be contain in maze")
-                        input("\nPress Enter to return to the menu...")
-                        break
-                    else:
-                        display_maze(maze, self.color, path)
-                        res = goodreturn(maze)
-                        if res != 2:
+                    try:
+                        maze = algo(rl_render, initforty)
+                        convert_maze_output(maze, self.output)
+                        if rl_render == "ascii":
+                            print("\033c")
+                            display_maze(maze, self.color, path)
+                            if not initforty:
+                                print("the 42 cannot be contain in maze")
+                            input("\nPress Enter to return to the menu...")
                             break
-
+                        else:
+                            res, error = goodreturn(maze)
+                            if res != 2:
+                                break
+                            if res == 3:
+                                print(error)
+                                break
+                    except IndexError as e:
+                        print("no good value")
+                        continue
             elif user == "2":
                 if rl_render == "ascii":
                     render_label, rl_render = "Mlx render", "mlx"
@@ -196,17 +207,18 @@ class Menu:
             elif user == "5":
                 while True:
                     try:
-                        dims = input("Enter dims as 'height,width':\n: ")
-                        h_str, w_str = dims.split(",")
-                        h, w = int(h_str), int(w_str)
+                        dims = input("Enter dims as 'width,height':\n: ")
+                        w_str, h_str = dims.split(",")
+                        w, h = int(w_str), int(h_str)
                         Config(
-                            HEIGHT=h, WIDTH=w,
+                            WIDTH=w, HEIGHT=h,
                             ENTRY=self.maze_conf.ENTRY,
                             EXIT=self.maze_conf.EXIT,
                             OUTPUT=self.output,
                             PERFECT=self.perfect
                         )
                         self.maze_conf.HEIGHT, self.maze_conf.WIDTH = h, w
+
                     except (ValueError, ValidationError, IndexError) as e:
                         print(e)
                     else:
@@ -240,8 +252,7 @@ class Menu:
                 print("\033c\nGoodbye :)")
                 break
             else:
-                print("Goodbye :)")
-                break
+                continue
 
 
 if __name__ == "__main__":
@@ -274,6 +285,9 @@ if __name__ == "__main__":
         print(f"\nError: {e}")
     except KeyboardInterrupt:
         print("\nGoodbye !")
-    except Exception as e:
+    except IndexError as e:
+        print(e)
+    except (Exception, IndexError) as e:
+        print(type(e).__name__)
         print(f"Unexpected error: {e}")
         sys.exit(1)
