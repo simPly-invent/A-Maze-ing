@@ -1,23 +1,34 @@
 import random
 import time
+from typing import Optional, Tuple
 from .solver import bfs
-from typing import Optional
-
 
 
 class MazeGenerator:
-    def __init__(self, height, width, entry, exit_, seed):
-        self.height = height
-        self.width = width
-        self.entry = entry
-        self.exit_ = exit_
-        self.seed = seed
+    def __init__(
+        self,
+        height: int,
+        width: int,
+        entry: Tuple[int, int],
+        exit_: Tuple[int, int],
+        seed: Optional[int],
+    ) -> None:
+        self.height: int = height
+        self.width: int = width
+        self.entry: Tuple[int, int] = entry
+        self.exit_: Tuple[int, int] = exit_
+        self.seed: Optional[int] = seed
         if self.seed is not None:
             random.seed(self.seed)
-        self.maze = None
-        self.solution = None
+        self.maze: Optional[Maze] = None
+        self.solution: Optional[list[Tuple[int, int]]] = None
+        self.start_gen: Tuple[int, int] = (0, 0)
 
-    def generate(self, algo="dfs", start=(0,0)):
+    def generate(
+        self,
+        algo: str = "dfs",
+        start: Tuple[int, int] = (0, 0),
+    ) -> None:
         self.start_gen = start
         self.maze = Maze(self.height, self.width, self.entry, self.exit_)
         if algo == "dfs":
@@ -74,15 +85,15 @@ class Maze:
         self,
         height: int,
         width: int,
-        entry: tuple[int, int],
-        exit_: tuple[int, int],
+        entry: Tuple[int, int],
+        exit_: Tuple[int, int],
     ) -> None:
-        self.height = height
-        self.width = width
-        self.entry = entry
-        self.exit = exit_
+        self.height: int = height
+        self.width: int = width
+        self.entry: Tuple[int, int] = entry
+        self.exit: Tuple[int, int] = exit_
         self.grid: list[list[Cell]] = []
-        self.path: list[tuple[int, int]] = []
+        self.path: list[Tuple[int, int]] = []
 
         for y in range(height):
             row: list[Cell] = []
@@ -208,7 +219,6 @@ def initforty_two(maze: Maze) -> None:
     Cells that belong to the pattern are marked as non-breakable so
     the generation algorithm cannot remove their walls.
     """
-
     pattern = [
         "4 4 222",
         "4 4   2",
@@ -228,7 +238,11 @@ def initforty_two(maze: Maze) -> None:
                 cell.isftwo = True
 
 
-def dfs(maze: Maze, color: str = None, type_display: str = None) -> None:
+def dfs(
+    maze: Maze,
+    color: Optional[str] = None,
+    type_display: Optional[str] = None,
+) -> None:
     """
     Generate a maze using Depth-First Search (recursive backtracker).
 
@@ -249,12 +263,12 @@ def dfs(maze: Maze, color: str = None, type_display: str = None) -> None:
     """
     from .renderer import display_maze
 
-    stack: list[tuple[int, int]] = [(0, 0)]
+    stack: list[Tuple[int, int]] = [(0, 0)]
     maze.grid[0][0].visited = True
 
     while stack:
         x, y = stack[-1]
-        neighbors: list[tuple[str, int, int]] = []
+        neighbors: list[Tuple[str, int, int]] = []
 
         n = maze.grid[y - 1][x] if y > 0 else None
         e = maze.grid[y][x + 1] if x < maze.width - 1 else None
@@ -318,8 +332,13 @@ def random_breaker(maze: Maze, chance: float = 0.1) -> None:
                         c1.generate = c2.generate = True
 
 
-def growing_tree(maze: Maze, x: int, y: int, 
-                 color: str = None, type_display: str = None) -> None:
+def growing_tree(
+    maze: Maze,
+    x: int,
+    y: int,
+    color: Optional[str] = None,
+    type_display: Optional[str] = None,
+) -> None:
     """
     Generate a maze using the Growing Tree algorithm.
 
@@ -348,7 +367,7 @@ def growing_tree(maze: Maze, x: int, y: int,
                 cell.visited = False
                 cell.generate = False
 
-    cells: list[tuple[int, int]] = [(y, x)]
+    cells: list[Tuple[int, int]] = [(y, x)]
     maze.grid[x][y].visited = True
     maze.grid[x][y].generate = True
 
@@ -356,7 +375,7 @@ def growing_tree(maze: Maze, x: int, y: int,
         idx = -1 if random.random() < 0.5 else random.randint(0, len(cells) - 1)
         cx, cy = cells[idx]
 
-        neighbors: list[tuple[str, int, int]] = []
+        neighbors: list[Tuple[str, int, int]] = []
 
         n = maze.grid[cy - 1][cx] if cy > 0 else None
         e = maze.grid[cy][cx + 1] if cx < maze.width - 1 else None
