@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field, model_validator
-from typing import ClassVar
-
+from typing import ClassVar, Self
 
 
 class Config(BaseModel):
@@ -24,33 +23,26 @@ class Config(BaseModel):
 
     PROTECTED_FILES: ClassVar[set[str]] = {
         "requirements.txt", "config.txt", "Makefile", "a_maze_ing.py"
-}
+    }
+
     @model_validator(mode="after")
-    def check_rules(self) -> "Config":
+    def check_rules(self) -> Self:
         if self.WIDTH <= 3 and self.HEIGHT <= 3:
             raise ValueError("maze is too small to be created")
         if not self.OUTPUT.endswith(".txt"):
             raise ValueError("output must be a .txt file")
         if self.OUTPUT in Config.PROTECTED_FILES:
-            raise ValueError(f"cannot overwrite protected file: {self.OUTPUT}")
+            raise ValueError(
+                f"cannot overwrite protected file: {self.OUTPUT}"
+            )
         return self
+
 
 def parser_conf(data: str) -> dict[str, str]:
     """
     Parse a 'config.txt' file into a key/value dictionary.
 
-    Expected format::
-
-        KEY=VALUE
-
-    Lines that are empty or start with '#' are ignored.
-    Each valid line must contain exactly one '=' separator.
-
-    Args:
-        data: Raw file content as a string.
-
-    Returns:
-        A dictionary mapping configuration keys to their string values.
+    Expected format: KEY=VALUE
     """
     REQUIRED_KEYS = {"WIDTH", "HEIGHT", "ENTRY", "EXIT", "PERFECT"}
     config: dict[str, str] = {}
@@ -62,6 +54,7 @@ def parser_conf(data: str) -> dict[str, str]:
             continue
         key, value = line.split("=", 1)
         config[key.strip()] = value.strip()
+
     missing = REQUIRED_KEYS - config.keys()
     if missing:
         raise ValueError(f"missing keys: {missing}")

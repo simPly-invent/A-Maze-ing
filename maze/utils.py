@@ -5,7 +5,7 @@ MAGENTA = "\033[35m"
 RESET = "\033[0m"
 
 
-def check_forty_two_length(height, width) -> bool:
-    if height >= 5 and width >=7:
+def check_forty_two_length(height: int, width: int) -> bool:
+    if height >= 5 and width >= 7:
         return True
     return False

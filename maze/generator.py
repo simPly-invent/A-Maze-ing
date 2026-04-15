@@ -318,8 +318,7 @@ def random_breaker(maze: Maze, chance: float = 0.1) -> None:
                         c1.generate = c2.generate = True
 
 
-def growing_tree(maze: Maze, x: int, y: int, 
-                 color: str = None, type_display: str = None) -> None:
+def growing_tree(maze: Maze, x: int, y: int, color: str = None, type_display: str = None) -> None:
     """
     Generate a maze using the Growing Tree algorithm.
 
@@ -388,7 +387,7 @@ def growing_tree(maze: Maze, x: int, y: int,
 
         if type_display == "ascii":
             print("\033c")
-            display_maze(maze, color)
+            display_maze(maze, color, True)
             time.sleep(0.04)
 
     open_wall(maze, *maze.entry)

@@ -43,7 +43,7 @@ def bfs(maze: "Maze") -> None:
         from entry to exit (inclusive). If no path exists, the list is empty.
 
     Note:
-        BFS guarantees the shortest path and handles mazes with loops correctly.
+      BFS guarantees the shortest path and handles mazes with loops correctly.
 
     Args:
         maze: The Maze object to solve. Its ``path`` attribute is overwritten.

@@ -5,6 +5,7 @@ description = ""
 authors = [
     {name = "mobenais/celamarc"}
 ]
+readme = "README.md"
 
 
 [tool.poetry]
