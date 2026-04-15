@@ -1,7 +1,7 @@
-from typing import Any, Optional, Union, cast
+from typing import Any, Tuple
 import time
-from .generator import Maze, Cell  # Assumé selon ton code
-from .utils import RESET           # Assumé selon ton code
+from .generator import Maze, Cell
+from .utils import RESET
 from mlx import Mlx
 
 
@@ -34,7 +34,10 @@ class Image:
         self.black: int = 0xFF000000
         self.bpp: int = 0
         self.offset: int = 0
-        self.maze = maze
+        self.maze: Maze = maze
+        self.line_length: int = 0
+        self.endian: int = 0
+        self.p: MazeCoord = MazeCoord()
 
     def new_image(self, mlx: 'Render') -> None:
         img_w: int = self.maze.width * self.case
@@ -56,7 +59,15 @@ class Image:
             for x in range(self.case):
                 self.put_pixel(col * self.case + x, row * self.case + y, color)
 
-    def wall(self, cell, x_s: int, y_s: int, x_e: int, y_e: int, color: int) -> None:
+    def wall(
+        self,
+        cell: Cell,
+        x_s: int,
+        y_s: int,
+        x_e: int,
+        y_e: int,
+        color: int,
+    ) -> None:
         if cell.N:
             for i in range(self.case):
                 self.put_pixel(x_s + i, y_s, color)
@@ -70,12 +81,18 @@ class Image:
             for i in range(self.case):
                 self.put_pixel(x_e, y_s + i, color)
 
-    def draw_path(self, path: list[tuple[int, int]], color: int) -> None:
+    def draw_path(self, path: list[Tuple[int, int]], color: int) -> None:
         for cell in path:
             self.put_case(cell[0], cell[1], color)
 
-    def draw_wall(self, cell: Cell, col: int, row: int,
-                  p: MazeCoord, color: int) -> None:
+    def draw_wall(
+        self,
+        cell: Cell,
+        col: int,
+        row: int,
+        p: MazeCoord,
+        color: int,
+    ) -> None:
         if row == 0:
             self.wall(cell, p.x_s, p.y_s + 1, p.x_e, p.y_e, color)
         if row == self.maze.height - 1:
@@ -117,16 +134,24 @@ class Render:
         self.maze: Maze = maze
         self.path_show: bool = False
         self.w: Window = Window()
-        self.case: int = int(min(self.w.height/self.maze.height, self.w.width/self.maze.width))
+        self.case: int = int(
+            min(self.w.height / self.maze.height, self.w.width / self.maze.width)
+        )
 
     def new_window(self, name: str) -> None:
-        self.w.window: Any = self.mlx.mlx_new_window(self.init, self.w.width, self.w.height, name)
+        self.w.window: Any = self.mlx.mlx_new_window(
+            self.init, self.w.width, self.w.height, name
+        )
 
     def refresh(self, image: Image, path: Image) -> None:
         if self.path_show:
-            self.mlx.mlx_put_image_to_window(self.init, self.w.window, path.image, 0, 0)
+            self.mlx.mlx_put_image_to_window(
+                self.init, self.w.window, path.image, 0, 0
+            )
         else:
-            self.mlx.mlx_put_image_to_window(self.init, self.w.window, image.image, 0, 0)
+            self.mlx.mlx_put_image_to_window(
+                self.init, self.w.window, image.image, 0, 0
+            )
 
     def close_window(self, param: Any) -> int:
         self.mlx.mlx_destroy_image(self.init, param.image)
@@ -154,7 +179,12 @@ def intro_animation(color: str) -> None:
         time.sleep(0.2)
 
 
-def display_maze(maze: Maze, color: str, path: bool = True, forty_color: str = "\033[30m") -> None:
+def display_maze(
+    maze: Maze,
+    color: str,
+    path: bool = True,
+    forty_color: str = "\033[30m",
+) -> None:
     COLOR_MAZE = color
     height = maze.height
     width = maze.width
@@ -200,8 +230,9 @@ def display_maze(maze: Maze, color: str, path: bool = True, forty_color: str = "
     print(COLOR_MAZE + "└" + "───┴" * (width - 1) + "───┘" + RESET)
 
 
-def test(key: int, params: Any):
+def test(key: int, params: Any) -> None:
     render, image, path = params
+
 
 def goodreturn(maze: Maze) -> int:
     state: int = 0
@@ -220,7 +251,7 @@ def goodreturn(maze: Maze) -> int:
         if key == 112:
             render.path_show = not render.path_show
             render.refresh(image, path)
-            return
+            return 0
         if key == 65307:
             state = 1
             render.close_window(image)

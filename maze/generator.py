@@ -11,7 +11,7 @@ class MazeGenerator:
         self.width = width
         self.entry = entry
         self.exit_ = exit_
-        self.seed = seed 
+        self.seed = seed
         if self.seed is not None:
             random.seed(self.seed)
         self.maze = None
@@ -33,7 +33,7 @@ class Cell:
     Represents a single cell in the maze.
 
     Attributes:
-        N, E, S, W: Walls on each side (True = wall present, False = open passage).
+        N, E, S, W: Walls on each side.
         isbreakable: Whether the wall can be broken during generation.
         visited: Used during DFS / BFS traversal.
         generate: Used during display while generating.
@@ -318,7 +318,8 @@ def random_breaker(maze: Maze, chance: float = 0.1) -> None:
                         c1.generate = c2.generate = True
 
 
-def growing_tree(maze: Maze, x: int, y: int, color: str = None, type_display: str = None) -> None:
+def growing_tree(maze: Maze, x: int, y: int, 
+                 color: str = None, type_display: str = None) -> None:
     """
     Generate a maze using the Growing Tree algorithm.
 
@@ -352,8 +353,8 @@ def growing_tree(maze: Maze, x: int, y: int, color: str = None, type_display: st
     maze.grid[x][y].generate = True
 
     while cells:
-        index = -1 if random.random() < 0.5 else random.randint(0, len(cells) - 1)
-        cx, cy = cells[index]
+        idx = -1 if random.random() < 0.5 else random.randint(0, len(cells) - 1)
+        cx, cy = cells[idx]
 
         neighbors: list[tuple[str, int, int]] = []
 
@@ -371,7 +372,7 @@ def growing_tree(maze: Maze, x: int, y: int, color: str = None, type_display: st
             neighbors.append(("W", cx - 1, cy))
 
         if not neighbors:
-            cells.pop(index)
+            cells.pop(idx)
             continue
 
         direction, nx, ny = random.choice(neighbors)
