@@ -29,6 +29,10 @@ class Config(BaseModel):
     def check_rules(self) -> Self:
         if self.WIDTH <= 3 and self.HEIGHT <= 3:
             raise ValueError("maze is too small to be created")
+        if self.ENTRY[0] < 0 or self.ENTRY[1] < 0:
+            raise ValueError("Entry cannot be negative")
+        if self.EXIT[0] < 0 or self.EXIT[1] < 0:
+            raise ValueError("Exit cannot be negative")
         if not self.OUTPUT.endswith(".txt"):
             raise ValueError("output must be a .txt file")
         if self.OUTPUT in Config.PROTECTED_FILES:

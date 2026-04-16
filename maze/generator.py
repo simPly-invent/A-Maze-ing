@@ -18,6 +18,7 @@ class MazeGenerator:
         self.entry: Tuple[int, int] = entry
         self.exit_: Tuple[int, int] = exit_
         self.seed: Optional[int] = seed
+        self.color = "\033[32m"
         if self.seed is not None:
             random.seed(self.seed)
         self.maze: Optional[Maze] = None
@@ -32,9 +33,13 @@ class MazeGenerator:
         self.start_gen = start
         self.maze = Maze(self.width, self.height, self.entry, self.exit_)
         if algo == "dfs":
-            dfs(self.maze)
+            dfs(self.maze, self.color)
         elif algo == "growing_tree":
-            growing_tree(self.maze, self.start_gen[0], self.start_gen[1])
+            growing_tree(
+                self.maze,
+                self.start_gen[0],
+                self.start_gen[1],
+                self.color)
         bfs(self.maze)
         self.solution = self.maze.path
 
@@ -118,6 +123,7 @@ def open_wall(maze: Maze, x: int, y: int) -> None:
     cell = maze.grid[y][x]
     if y == 0:
         cell.N = False
+        print("1")
     elif y == maze.height - 1:
         cell.S = False
     elif x == 0:
@@ -240,7 +246,7 @@ def initforty_two(maze: Maze) -> None:
 
 def dfs(
     maze: Maze,
-    color: Optional[str] = None,
+    color: str,
     type_display: Optional[str] = None,
 ) -> None:
     """
@@ -294,13 +300,19 @@ def dfs(
             stack.append((nx, ny))
             if type_display == "ascii":
                 print("\033c")
-                display_maze(maze, color)
+                display_maze(maze, color, True)
                 time.sleep(0.05)
         else:
             stack.pop()
 
-    open_wall(maze, *maze.entry)
-    open_wall(maze, *maze.exit)
+    try:
+        open_wall(maze, *maze.entry)
+    except Exception:
+        raise Exception("Entry outside of the maze, change the config.txt")
+    try:
+        open_wall(maze, *maze.exit)
+    except Exception:
+        raise Exception("Exit outside of the maze, change the config.txt")
     print("\033c")
 
 
@@ -336,7 +348,7 @@ def growing_tree(
     maze: Maze,
     x: int,
     y: int,
-    color: Optional[str] = None,
+    color: str,
     type_display: Optional[str] = None,
 ) -> None:
     """
@@ -346,7 +358,8 @@ def growing_tree(
         - Maintain an active list of cells.
         - With 50 % probability pick the last cell (DFS-like behaviour).
         - Otherwise pick a random cell from the list (more open layout).
-        - Break the wall to a random unvisited neighbour and add it to the list.
+        - Break the wall to a random unvisited neighbour
+        and add it to the list.
         - Remove a cell from the list when it has no more unvisited neighbours.
 
     The result is less rigid than pure DFS and produces more natural-looking
@@ -372,8 +385,8 @@ def growing_tree(
     maze.grid[y][x].generate = True
 
     while cells:
-        idx = -1 if random.random() < 0.5 else random.randint(0, len(cells) - 1)
-        cx, cy = cells[idx]
+        id = -1 if random.random() < 0.5 else random.randint(0, len(cells) - 1)
+        cx, cy = cells[id]
 
         neighbors: list[Tuple[str, int, int]] = []
 
@@ -391,7 +404,7 @@ def growing_tree(
             neighbors.append(("W", cx - 1, cy))
 
         if not neighbors:
-            cells.pop(idx)
+            cells.pop(id)
             continue
 
         direction, nx, ny = random.choice(neighbors)
@@ -410,6 +423,12 @@ def growing_tree(
             display_maze(maze, color, True)
             time.sleep(0.04)
 
-    open_wall(maze, *maze.entry)
-    open_wall(maze, *maze.exit)
+    try:
+        open_wall(maze, *maze.entry)
+    except Exception:
+        raise Exception("Entry outside of the maze, change the config.txt")
+    try:
+        open_wall(maze, *maze.exit)
+    except Exception:
+        raise Exception("Exit outside of the maze, change the config.txt")
     print("\033c")

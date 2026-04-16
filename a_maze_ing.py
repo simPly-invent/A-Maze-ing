@@ -49,7 +49,7 @@ class Menu:
         self.perfect = perfect
         self.output = output
 
-    def growing_tree_menu(self, type_display: str, init_forty: str) -> Maze:
+    def growing_tree_menu(self, type_display: str, init_forty: bool) -> Maze:
         """Build a maze using the Growing Tree algorithm."""
         maze = Maze(
             self.maze_conf.WIDTH,
@@ -82,7 +82,7 @@ class Menu:
         bfs(maze)
         return maze
 
-    def dfs_menu(self, type_display: str, init_forty: str) -> Maze:
+    def dfs_menu(self, type_display: str, init_forty: bool) -> Maze:
         """Build a maze using the Depth-First Search algorithm."""
         maze = Maze(
             self.maze_conf.WIDTH,
@@ -105,12 +105,12 @@ class Menu:
 
     def run(self) -> None:
         """Start the interactive main menu loop."""
-        algo: Callable[[str, str], Maze] = self.dfs_menu
+        algo: Callable[[str, bool], Maze] = self.dfs_menu
         render_label: str = "Ascii render"
         rl_render: str = "ascii"
         maze: Maze | None = None
         path: bool = True
-        # intro_animation(self.color)
+        intro_animation(self.color)
 
         while True:
             if self.i == 35:
@@ -121,11 +121,11 @@ class Menu:
                 " ------------\n"
                 "| board menu |\n"
                 "  ------------\n"
-                f"State      : {'perfect' if self.perfect else 'not perfect'}\n"
-                f"Dimensions : {self.maze_conf.WIDTH} "
+                f"State     : {'perfect' if self.perfect else 'not perfect'}\n"
+                f"Dimensions: {self.maze_conf.WIDTH} "
                 f"x {self.maze_conf.HEIGHT}\n"
-                f"Algorithm  : {algo_label}\n"
-                f"Render     : {render_label}\n"
+                f"Algorithm : {algo_label}\n"
+                f"Render    : {render_label}\n"
                 " ---------------------------\n"
                 "| Menu, what do you want?   |\n"
                 " ---------------------------"
@@ -145,20 +145,17 @@ class Menu:
 
             if user == "1":
                 while True:
+                    initforty = check_forty_two_length(
+                        self.maze_conf.WIDTH, self.maze_conf.HEIGHT
+                    )
                     try:
-                        initforty = check_forty_two_length(
-                            self.maze_conf.WIDTH, self.maze_conf.HEIGHT
-                        )
-                    except IndexError as e:
-                        print("oui")
-                    temp_maze = algo("test", initforty)
+                        temp_maze = algo("test", initforty)
+                    except IndexError:
+                        raise IndexError("Error, entry or exit"
+                                         " outside of the maze")
                     ex, ey = temp_maze.entry
                     sx, sy = temp_maze.exit
                     try:
-                        if ex > self.maze_conf.WIDTH or ey > self.maze_conf.HEIGHT:
-                            raise IndexError("Entry outside of the maze")
-                        if sx > self.maze_conf.WIDTH or sy > self.maze_conf.HEIGHT:
-                            raise IndexError("Exit outside of the maze")
                         if not temp_maze.grid[ey][ex].isbreakable:
                             raise CheckErrorLocation("entry in 42 logo")
                         if not temp_maze.grid[sy][sx].isbreakable:
@@ -183,8 +180,8 @@ class Menu:
                             if res == 3:
                                 print(error)
                                 break
-                    except IndexError as e:
-                        print("no good value")
+                    except IndexError:
+                        print("No good value")
                         continue
             elif user == "2":
                 if rl_render == "ascii":
@@ -284,10 +281,9 @@ if __name__ == "__main__":
     except (ValueError, CheckErrorLocation) as e:
         print(f"\nError: {e}")
     except KeyboardInterrupt:
+        print("\033c")
         print("\nGoodbye !")
-    except IndexError as e:
-        print(e)
     except (Exception) as e:
-        print(type(e).__name__)
+        print("\033c")
         print(f"Unexpected error: {e}")
-        sys.exit(1)
+        sys.exit()
