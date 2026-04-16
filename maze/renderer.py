@@ -357,7 +357,8 @@ def goodreturn(maze: Maze) -> Any:
         render.mlx.mlx_put_image_to_window(render.init,
                                            render.w.window, image.image, 0, 0)
         render.mlx.mlx_key_hook(render.w.window, catch_key, params)
-        render.mlx.mlx_hook(render.w.window, 33, 0, render.close_window, params)
+        render.mlx.mlx_hook(render.w.window, 33, 0,
+                            render.close_window, params)
         render.mlx.mlx_loop(render.init)
     except Exception as err:
         return 3, err
