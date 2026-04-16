@@ -59,24 +59,7 @@ class Menu:
         )
         if init_forty:
             initforty_two(maze)
-
-        while True:
-            try:
-                if type_display == "test":
-                    x, y = 1, 1
-                else:
-                    msg = "Starting generation from (x,y)?\n"
-                    raw_input = input(msg)
-                    coords = list(map(int, raw_input.split(",")))
-                    x, y = coords[0], coords[1]
-                if x < 0 or y < 0 or x >= maze.width or y >= maze.height:
-                    raise ValueError("out of the range")
-            except (ValueError, IndexError) as e:
-                print(e)
-            else:
-                break
-
-        growing_tree(maze, y, x, self.color, type_display)
+        growing_tree(maze, 0, 0, self.color, type_display)
         if not self.perfect:
             random_breaker(maze, 0.10)
         bfs(maze)

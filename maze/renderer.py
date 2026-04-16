@@ -172,6 +172,10 @@ class Image:
                 self.p.y_s = row * self.case
                 self.p.x_e = ((col + 1) * self.case) - 1
                 self.p.y_e = ((row + 1) * self.case) - 1
+                if self.maze.height == 1:
+                    row = 1
+                if self.maze.width == 1:
+                    col = 1
                 self.draw_wall(cell, col, row, self.p, self.white)
                 if cell.isftwo:
                     self.put_case(col, row, self.white)
