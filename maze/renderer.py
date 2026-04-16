@@ -347,17 +347,17 @@ def goodreturn(maze: Maze) -> Any:
             render.refresh(image, path)
         if key == 65307:
             state = 1
-            render.close_window(image)
+            render.close_window(params)
         elif key == 32:
             state = 2
-            render.close_window(image)
+            render.close_window(params)
 
     try:
         params = (image, path)
         render.mlx.mlx_put_image_to_window(render.init,
                                            render.w.window, image.image, 0, 0)
         render.mlx.mlx_key_hook(render.w.window, catch_key, params)
-        render.mlx.mlx_hook(render.w.window, 33, 0, render.close_window, image)
+        render.mlx.mlx_hook(render.w.window, 33, 0, render.close_window, params)
         render.mlx.mlx_loop(render.init)
     except Exception as err:
         return 3, err
