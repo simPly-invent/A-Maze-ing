@@ -211,9 +211,9 @@ def convert_maze_output(maze: Maze, output: str) -> None:
             elif dy == -1:
                 direction = "N"
             elif dx == +1:
-                direction = "W"
-            elif dx == -1:
                 direction = "E"
+            elif dx == -1:
+                direction = "W"
             if direction is not None:
                 f.write(direction)
 

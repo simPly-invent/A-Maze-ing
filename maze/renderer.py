@@ -106,29 +106,6 @@ class Image:
             for x in range(self.case):
                 self.put_pixel(col * self.case + x, row * self.case + y, color)
 
-    def wall(
-        self,
-        cell: Cell,
-        x_s: int,
-        y_s: int,
-        x_e: int,
-        y_e: int,
-        color: int,
-    ) -> None:
-        """Draw cell walls based on North, South, West, East properties."""
-        if cell.N:
-            for i in range(self.case):
-                self.put_pixel(x_s + i, y_s, color)
-        if cell.S:
-            for i in range(self.case):
-                self.put_pixel(x_s + i, y_e, color)
-        if cell.W:
-            for i in range(self.case):
-                self.put_pixel(x_s, y_s + i, color)
-        if cell.E:
-            for i in range(self.case):
-                self.put_pixel(x_e, y_s + i, color)
-
     def draw_path(self, path: list[Tuple[int, int]], color: int) -> None:
         """Render the maze path using the specified color."""
         for cell in path:
@@ -143,15 +120,18 @@ class Image:
         color: int,
     ) -> None:
         """Determine wall placement for a cell and draw it."""
-        if row == 0:
-            self.wall(cell, p.x_s, p.y_s + 1, p.x_e, p.y_e, color)
-        if row == self.maze.height - 1:
-            self.wall(cell, p.x_s, p.y_s, p.x_e, p.y_e - 1, color)
-        if col == 0:
-            self.wall(cell, p.x_s + 1, p.y_s, p.x_e, p.y_e, color)
-        if col == self.maze.width - 1:
-            self.wall(cell, p.x_s - 1, p.y_s, p.x_e - 1, p.y_e, color)
-        self.wall(cell, p.x_s, p.y_s, p.x_e, p.y_e, color)
+        if cell.N:
+            for i in range(self.case):
+                self.put_pixel(p.x_s + i, p.y_s, color)
+        if cell.S:
+            for i in range(self.case):
+                self.put_pixel(p.x_s + i, p.y_e, color)
+        if cell.W:
+            for i in range(self.case):
+                self.put_pixel(p.x_s, p.y_s + i, color)
+        if cell.E:
+            for i in range(self.case):
+                self.put_pixel(p.x_e, p.y_s + i, color)
 
     def draw_maze(self, path: bool) -> None:
         """Clear the buffer and render the full maze,
@@ -172,10 +152,6 @@ class Image:
                 self.p.y_s = row * self.case
                 self.p.x_e = ((col + 1) * self.case) - 1
                 self.p.y_e = ((row + 1) * self.case) - 1
-                if self.maze.height == 1:
-                    row = 1
-                if self.maze.width == 1:
-                    col = 1
                 self.draw_wall(cell, col, row, self.p, self.white)
                 if cell.isftwo:
                     self.put_case(col, row, self.white)

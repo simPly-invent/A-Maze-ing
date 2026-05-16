@@ -6,7 +6,7 @@ from typing import Callable, Any, cast
 from pydantic import ValidationError
 
 from maze import (
-    RED, GREEN, YELLOW, MAGENTA,
+    RED, GREEN, YELLOW, MAGENTA, RESET,
     Config, Maze, growing_tree, dfs, bfs,
     random_breaker, initforty_two, check_forty_two_length,
     convert_maze_output, display_maze, goodreturn,
@@ -237,7 +237,11 @@ class Menu:
 
 if __name__ == "__main__":
     try:
-        with open("config.txt", "r") as f:
+        if len(sys.argv) > 1:
+            config_file = sys.argv[1]
+        else:
+            config_file = "config.txt"
+        with open(config_file, "r") as f:
             raw_data = f.read()
         config_data = parser_conf(raw_data)
         m_conf = Config(
@@ -252,21 +256,27 @@ if __name__ == "__main__":
             OUTPUT=str(config_data["OUTPUT_FILE"]),
             PERFECT=config_data["PERFECT"].lower() == "true"
         )
+        if m_conf.ENTRY == m_conf.EXIT:
+            print("\033c")
+            print(f"[{RED}ERROR{RESET}]: Entry and exit \
+cannot be at the same location")
+            sys.exit()
         menu_obj = Menu(m_conf, m_conf.PERFECT, RED, m_conf.OUTPUT)
         menu_obj.run()
+        print(config_file)
 
     except FileNotFoundError:
-        print("Error: config.txt not found.")
+        print(f"[{RED}Error{RESET}]: {config_file} not found.")
     except ValidationError as exc:
         for err in exc.errors():
             fld = err["loc"][0] if err["loc"] else "Config"
-            print(f"{fld}: {err['msg']}")
+            print(f"{fld}: {RED}{err['msg']}{RESET}")
     except (ValueError, CheckErrorLocation) as e:
-        print(f"\nError: {e}")
-    except KeyboardInterrupt:
+        print(f"\n[{RED}Error{RESET}]: {e}")
+    except (KeyboardInterrupt, EOFError):
         print("\033c")
         print("\nGoodbye !")
     except (Exception) as e:
         print("\033c")
-        print(f"Unexpected error: {e}")
+        print(f"[{RED}Unexpected error{RESET}]: {e}")
         sys.exit()
