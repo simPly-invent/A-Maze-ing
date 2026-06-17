@@ -6,19 +6,19 @@ from mlx import Mlx
 
 
 class MlxError(Exception):
-    pass
+    ...
 
 
 class InitError(MlxError):
-    pass
+    ...
 
 
 class WindowError(MlxError):
-    pass
+    ...
 
 
 class ImageError(MlxError):
-    pass
+    ...
 
 
 class Window:
