@@ -6,6 +6,8 @@
 
 A-Maze-ing is a Python maze generator. The program reads a configuration file, generates a maze (perfect or not), displays it visually, and writes the result to an output file using a hexadecimal wall representation. The maze always contains a visible "42" pattern, and a BFS solver automatically computes the shortest path between the entry and the exit.
 
+![A-Maze-ing generating a 20x20 maze in the terminal](docs/demo.gif)
+
 ## Instructions
 
 ### Installation
